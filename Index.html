@@ -557,363 +557,269 @@ html,body{
     </button>
 
   </nav>
-  <script>
+    <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-// -----------------------------
-// SAFE STATE INIT
-// -----------------------------
-let data = JSON.parse(localStorage.getItem("momentum-data") || "{}");
+    /* -----------------------------------
+       STATE + LOCAL STORAGE
+    ----------------------------------- */
+    let data = JSON.parse(localStorage.getItem("momentum-data") || "{}");
 
-if (!data.timers) {
-  data.timers = {
-    study:   { goal:360, sessions:[] },
-    project: { goal:240, sessions:[] },
-    workout: { goal:60,  sessions:[] },
-    social:  { goal:30,  sessions:[] }
-  };
-}
-
-if (!data.notes) data.notes = {};
-if (!data.streak) data.streak = 0;
-
-saveState();
-function saveState(){
-  localStorage.setItem("momentum-data", JSON.stringify(data));
-}
-
-
-// -----------------------------
-// HELPERS
-// -----------------------------
-function todayKey(){ return new Date().toISOString().slice(0,10); }
-function nowMinutes(){ return Math.floor(Date.now()/60000); }
-
-function fmt(mins){
-  if (mins <= 0) return "0m";
-  let h = Math.floor(mins / 60);
-  let m = mins % 60;
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
-}
-
-
-// -----------------------------
-// NAVIGATION
-// -----------------------------
-const pages = document.querySelectorAll(".page");
-const navBtns = document.querySelectorAll(".nav-btn");
-
-navBtns.forEach(btn=>{
-  btn.onclick = () => {
-    let target = btn.dataset.page;
-
-    navBtns.forEach(b=>b.classList.remove("nav-active"));
-    btn.classList.add("nav-active");
-
-    pages.forEach(p=>p.style.display="none");
-    document.getElementById(target).style.display="block";
-
-    if(target==="page-home") renderHome();
-    if(target==="page-timers") renderTimers();
-    if(target==="page-notes") renderNotes();
-  };
-});
-
-
-// -----------------------------
-// HOME PAGE
-// -----------------------------
-let donutChart, lineChart;
-
-function renderHome(){
-  let t = todayKey();
-  let totals = { study:0, project:0, workout:0, social:0 };
-  let recent = [];
-
-  for (let k in data.timers){
-    for (let s of data.timers[k].sessions){
-      if(s.date === t){
-        totals[k] += s.mins;
-        recent.push({...s, cat:k});
-      }
-    }
-  }
-
-  document.getElementById("todayTotal").innerText = fmt(
-    totals.study + totals.project + totals.workout + totals.social
-  );
-  document.getElementById("studyTotal").innerText   = fmt(totals.study);
-  document.getElementById("projectTotal").innerText = fmt(totals.project);
-  document.getElementById("workoutTotal").innerText = fmt(totals.workout);
-  document.getElementById("socialTotal").innerText  = fmt(totals.social);
-
-  document.getElementById("streakCount").innerText = data.streak + "d";
-
-  renderDonut(totals);
-  renderWeekly();
-
-  // recent sessions
-  let wrap = document.getElementById("recentSessions");
-  wrap.innerHTML = "";
-  recent.slice(-8).reverse().forEach(r=>{
-    let d = document.createElement("div");
-    d.className = "recent-item";
-    d.innerText = `${r.cat} — ${fmt(r.mins)}`;
-    wrap.appendChild(d);
-  });
-}
-
-
-// -----------------------------
-// DONUT CHART
-// -----------------------------
-function renderDonut(totals){
-  let ctx = document.getElementById("donutChart");
-  let arr = [totals.study, totals.project, totals.workout, totals.social];
-  let sum = arr.reduce((a,b)=>a+b,0);
-
-  document.getElementById("donutCenter").innerText = (sum/60).toFixed(1)+"h";
-
-  if(donutChart) donutChart.destroy();
-
-  donutChart = new Chart(ctx,{
-    type:"doughnut",
-    data:{
-      labels:["Study","Project","Workout","Social"],
-      datasets:[{
-        data:arr,
-        backgroundColor:["#0ea5e9","#22c55e","#f97316","#ef4444"],
-        borderWidth:0,
-        cutout:"60%"
-      }]
-    },
-    options:{ plugins:{legend:{display:false}}, responsive:true }
-  });
-
-  let legend = document.getElementById("donutLegend");
-  legend.innerHTML = "";
-  ["Study","Project","Workout","Social"].forEach((name,i)=>{
-    let m = arr[i];
-    let pct = sum?((m/sum)*100).toFixed(0):0;
-    let row = document.createElement("div");
-    row.innerHTML = `
-      <span style="display:inline-block;width:12px;height:12px;
-      background:${donutChart.data.datasets[0].backgroundColor[i]};
-      border-radius:4px;margin-right:6px;"></span>
-      ${name}: ${fmt(m)}  — ${pct}%`;
-    legend.appendChild(row);
-  });
-}
-
-
-// -----------------------------
-// WEEKLY LINE CHART
-// -----------------------------
-function renderWeekly(){
-  let ctx = document.getElementById("lineChart");
-
-  let labels = [];
-  let values = [];
-
-  for(let i=6;i>=0;i--){
-    let d = new Date(Date.now()-i*86400000);
-    let key = d.toISOString().slice(0,10);
-    labels.push(key.slice(5));
-
-    let sum=0;
-    for(let k in data.timers){
-      for(let s of data.timers[k].sessions){
-        if(s.date===key) sum+=s.mins;
-      }
-    }
-    values.push((sum/60).toFixed(1));
-  }
-
-  document.getElementById("trendDateRange").innerText =
-    `${labels[0]} → ${labels[6]}`;
-
-  if(lineChart) lineChart.destroy();
-
-  lineChart = new Chart(ctx,{
-    type:"line",
-    data:{
-      labels:labels,
-      datasets:[{
-        label:"Hours",
-        data:values,
-        borderColor:"#0b69ff",
-        backgroundColor:"rgba(11,105,255,0.2)",
-        fill:true,
-        tension:0.3,
-        pointRadius:4
-      }]
-    },
-    options:{
-      plugins:{legend:{display:false}},
-      scales:{y:{beginAtZero:true}}
-    }
-  });
-}
-
-
-// -----------------------------
-// TIMERS PAGE
-// -----------------------------
-let running = {};
-
-function renderTimers(){
-  let list = document.getElementById("timersList");
-  list.innerHTML = "";
-
-  for(let cat in data.timers){
-    let t = data.timers[cat];
-
-    let div = document.createElement("div");
-    div.className = "timer-item";
-
-    div.innerHTML = `
-      <div class="timer-title">${cat.charAt(0).toUpperCase()+cat.slice(1)}</div>
-      <div class="timer-goal">Goal: ${fmt(t.goal)}</div>
-
-      <div class="timer-row">
-        <button class="timer-btn start" data-cat="${cat}" data-act="start">Start</button>
-        <button class="timer-btn" data-cat="${cat}" data-act="stop">Stop</button>
-        <button class="timer-btn" data-cat="${cat}" data-act="log">Log</button>
-        <button class="timer-btn" data-cat="${cat}" data-act="delete">Del</button>
-      </div>
-    `;
-
-    list.appendChild(div);
-  }
-
-  document.querySelectorAll(".timer-btn").forEach(btn=>{
-    btn.onclick = ()=>{
-      let cat = btn.dataset.cat;
-      let act = btn.dataset.act;
-
-      if(act==="start"){
-        running[cat] = { start: nowMinutes() };
-      }
-
-      if(act==="stop"){
-        if(running[cat]){
-          let mins = nowMinutes() - running[cat].start;
-          if(mins>0) addSession(cat, mins);
-          delete running[cat];
+    const defaultState = {
+        sessions: [],
+        notes: {},
+        goals: {
+            study: 6 * 60 * 60,
+            project: 4 * 60 * 60,
+            workout: 1 * 60 * 60,
+            social: 30 * 60
+        },
+        timers: {
+            study: null,
+            project: null,
+            workout: null,
+            social: null
         }
-      }
-
-      if(act==="log"){
-        let m = parseInt(prompt("Minutes?")||"0");
-        if(m>0) addSession(cat, m);
-      }
-
-      if(act==="delete"){
-        if(confirm("Delete all sessions?")){
-          data.timers[cat].sessions = [];
-          saveState();
-        }
-      }
-
-      renderTimers();
-      renderHome();
     };
-  });
 
-  document.getElementById("clearTodayBtn").onclick = ()=>{
-    let t = todayKey();
-    for(let c in data.timers){
-      data.timers[c].sessions = data.timers[c].sessions.filter(s=>s.date!==t);
+    data = { ...defaultState, ...data };
+
+    function saveData() {
+        localStorage.setItem("momentum-data", JSON.stringify(data));
     }
-    saveState();
-    renderTimers();
-    renderHome();
-  };
-}
 
-function addSession(cat, mins){
-  let t = todayKey();
-  data.timers[cat].sessions.push({date:t, mins:mins});
-  saveState();
-}
-
-
-// -----------------------------
-// NOTES PAGE
-// -----------------------------
-function renderNotes(){
-  let t = todayKey();
-
-  document.getElementById("notesTodayHeader").innerText = t;
-  document.getElementById("notesInput").value = data.notes[t] || "";
-
-  let history = document.getElementById("notesHistory");
-  history.innerHTML = "";
-
-  Object.keys(data.notes).sort().reverse().forEach(d=>{
-    if(d===t) return;
-    let box = document.createElement("div");
-    box.className="history-entry";
-    box.innerHTML = `
-      <div class="history-date">${d}</div>
-      <div class="history-text">${data.notes[d]}</div>
-    `;
-    history.appendChild(box);
-  });
-
-  document.getElementById("saveNotesBtn").onclick = ()=>{
-    let txt = document.getElementById("notesInput").value.trim();
-    if(txt.length>0) data.notes[t] = txt;
-    else delete data.notes[t];
-
-    saveState();
-    renderNotes();
-  };
-}
-
-
-// -----------------------------
-// EXPORT / IMPORT
-// -----------------------------
-document.getElementById("exportBtn").onclick = ()=>{
-  let blob = new Blob([JSON.stringify(data)], {type:"application/json"});
-  let a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "momentum.json";
-  a.click();
-};
-
-document.getElementById("importBtn").onclick = ()=>{
-  document.getElementById("importInput").click();
-};
-
-document.getElementById("importInput").onchange = e=>{
-  let file = e.target.files[0];
-  if(!file) return;
-
-  let reader = new FileReader();
-  reader.onload = ()=>{
-    try{
-      data = JSON.parse(reader.result);
-      saveState();
-      renderHome();
-      renderTimers();
-      renderNotes();
-    }catch(err){
-      alert("Invalid JSON");
+    /* -----------------------------------
+       TIME HELPERS
+    ----------------------------------- */
+    function secondsToHMS(sec) {
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        return `${h}h ${m}m`;
     }
-  };
-  reader.readAsText(file);
-};
 
+    function secondsToShort(sec) {
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        return `${h}h ${m}m`;
+    }
 
-// -----------------------------
-// INITIAL LOAD
-// -----------------------------
-renderHome();
-      }); // END DOMContentLoaded
+    function todayKey() {
+        return new Date().toISOString().split("T")[0];
+    }
 
-</script>
+    /* -----------------------------------
+       START TIMER
+    ----------------------------------- */
+    function startTimer(type) {
+        if (data.timers[type]) return;
 
-</body>
-</html>
+        data.timers[type] = {
+            start: Date.now()
+        };
+        saveData();
+        alert(type + " timer started");
+    }
+
+    /* -----------------------------------
+       STOP TIMER
+    ----------------------------------- */
+    function stopTimer(type) {
+        const t = data.timers[type];
+        if (!t) return;
+
+        const duration = Math.floor((Date.now() - t.start) / 1000);
+        data.timers[type] = null;
+
+        // Auto log session
+        logTime(type, duration);
+        saveData();
+        updateUI();
+        alert(type + " timer stopped");
+    }
+
+    /* -----------------------------------
+       LOG SESSION MANUALLY
+    ----------------------------------- */
+    function logTime(type, sec = null) {
+        if (!sec) {
+            const input = prompt("Minutes?", "30");
+            if (!input) return;
+            sec = parseInt(input) * 60;
+        }
+
+        data.sessions.push({
+            type,
+            sec,
+            date: todayKey()
+        });
+        saveData();
+        updateUI();
+    }
+
+    /* -----------------------------------
+       DELETE LAST SESSION
+    ----------------------------------- */
+    function deleteLast(type) {
+        for (let i = data.sessions.length - 1; i >= 0; i--) {
+            if (data.sessions[i].type === type) {
+                data.sessions.splice(i, 1);
+                break;
+            }
+        }
+        saveData();
+        updateUI();
+    }
+
+    /* -----------------------------------
+       CLEAR TODAY
+    ----------------------------------- */
+    function clearToday() {
+        data.sessions = data.sessions.filter(s => s.date !== todayKey());
+        saveData();
+        updateUI();
+        alert("Today cleared");
+    }
+
+    /* -----------------------------------
+       NOTES
+    ----------------------------------- */
+    function saveNote() {
+        const box = document.getElementById("noteBox");
+        const note = box.value.trim();
+        if (!note) return;
+
+        const k = todayKey();
+        if (!data.notes[k]) data.notes[k] = [];
+        data.notes[k].push(note);
+
+        box.value = "";
+        saveData();
+        renderNotes();
+    }
+
+    function renderNotes() {
+        const list = document.getElementById("noteList");
+        list.innerHTML = "";
+
+        Object.keys(data.notes).reverse().forEach(day => {
+            data.notes[day].forEach(n => {
+                const div = document.createElement("div");
+                div.className = "note-item";
+                div.innerHTML = `<b>${day}</b><br>${n}`;
+                list.appendChild(div);
+            });
+        });
+    }
+
+    /* -----------------------------------
+       CHARTS
+    ----------------------------------- */
+    let pieChart, lineChart;
+
+    function updateCharts() {
+        const today = todayKey();
+        let totals = { study: 0, project: 0, workout: 0, social: 0 };
+
+        data.sessions.forEach(s => {
+            if (s.date === today) totals[s.type] += s.sec;
+        });
+
+        // PIE CHART (Daily Distribution)
+        if (pieChart) pieChart.destroy();
+        pieChart = new Chart(document.getElementById("pieChart"), {
+            type: "pie",
+            data: {
+                labels: ["Study", "Project", "Workout", "Social"],
+                datasets: [{
+                    data: [
+                        totals.study / 3600,
+                        totals.project / 3600,
+                        totals.workout / 3600,
+                        totals.social / 3600
+                    ],
+                    backgroundColor: ["#4c8bf5", "#34c759", "#ff9500", "#af52de"]
+                }]
+            }
+        });
+
+        // LINE CHART (Weekly)
+        const days = [];
+        const values = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const k = d.toISOString().split("T")[0];
+            days.push(k.substring(5));
+
+            let sum = 0;
+            data.sessions.forEach(s => {
+                if (s.date === k) sum += s.sec;
+            });
+            values.push(sum / 3600);
+        }
+
+        if (lineChart) lineChart.destroy();
+        lineChart = new Chart(document.getElementById("lineChart"), {
+            type: "line",
+            data: {
+                labels: days,
+                datasets: [{
+                    label: "Hours",
+                    data: values,
+                    borderWidth: 2,
+                    pointRadius: 3
+                }]
+            }
+        });
+    }
+
+    /* -----------------------------------
+       UPDATE UI
+    ----------------------------------- */
+    function updateUI() {
+        const today = todayKey();
+        let totals = { study: 0, project: 0, workout: 0, social: 0 };
+
+        data.sessions.forEach(s => {
+            if (s.date === today) totals[s.type] += s.sec;
+        });
+
+        document.getElementById("todayStudy").innerText = secondsToShort(totals.study);
+        document.getElementById("todayProject").innerText = secondsToShort(totals.project);
+        document.getElementById("todayWorkout").innerText = secondsToShort(totals.workout);
+        document.getElementById("todaySocial").innerText = secondsToShort(totals.social);
+
+        updateCharts();
+        renderNotes();
+    }
+
+    /* -----------------------------------
+       EVENT BINDINGS
+    ----------------------------------- */
+    document.querySelectorAll("[data-start]").forEach(btn =>
+        btn.onclick = () => startTimer(btn.dataset.start)
+    );
+
+    document.querySelectorAll("[data-stop]").forEach(btn =>
+        btn.onclick = () => stopTimer(btn.dataset.stop)
+    );
+
+    document.querySelectorAll("[data-log]").forEach(btn =>
+        btn.onclick = () => logTime(btn.dataset.log)
+    );
+
+    document.querySelectorAll("[data-del]").forEach(btn =>
+        btn.onclick = () => deleteLast(btn.dataset.del)
+    );
+
+    document.getElementById("clearToday").onclick = clearToday;
+    document.getElementById("saveNote").onclick = saveNote;
+
+    /* -----------------------------------
+       INIT
+    ----------------------------------- */
+    updateUI();
+
+});
+                              </script>
+  
