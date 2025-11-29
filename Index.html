@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Momentum — Minimal</title>
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#071022;
+    --card-bg: rgba(255,255,255,0.03);
+    --card-bg-2: rgba(255,255,255,0.025);
+    --muted: rgba(255,255,255,0.65);
+    --glass-border: rgba(255,255,255,0.06);
+    --accent-a: #7c5cff;
+    --accent-b: #00d4ff;
+    --radius: 14px;
+    --safe-pad: max(12px, env(safe-area-inset-left));
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#06121e 0%, #071022 100%);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:#fff;-webkit-font-smoothing:antialiased}
+  *{box-sizing:border-box}
+  a{color:inherit}
+  /* App shell */
+  .app{
+    min-height:100vh;
+    padding:16px;
+    padding-left:calc(var(--safe-pad) + 4px);
+    padding-right:calc(var(--safe-pad) + 4px);
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+  }
+  .wrap{
+    width:100%;
+    max-width:900px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  /* Header */
+  header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .logo{
+    width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;box-shadow:0 8px 28px rgba(0,0,0,0.5);
+  }
+  .title{line-height:1}
+  .title h1{margin:0;font-size:16px}
+  .title p{margin:0;font-size:12px;color:var(--muted)}
+
+  /* controls in header */
+  .hdr-controls{display:flex;gap:8px;align-items:center}
+  .icon-btn{
+    background:transparent;border:1px solid var(--glass-border);padding:8px;border-radius:10px;font-weight:700;font-size:13px;color:#fff;backdrop-filter: blur(8px)
+  }
+  .primary-btn{background:linear-gradient(90deg,var(--accent-a),var(--accent-b));border:none;color:#071022;padding:8px 12px;border-radius:10px;font-weight:700}
+
+  /* Main cards vertical stack — mobile-first */
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius: var(--radius);
+    padding:12px;
+    border:1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+  }
+
+  /* Hero / top summary */
+  .hero{display:flex;gap:10px;align-items:center}
+  .hero-left{flex:1}
+  .big-number{font-weight:900;font-size:28px}
+  .muted{color:var(--muted);font-size:13px}
+
+  /* Quick stat chips */
+  .chips{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .chip{padding:8px 10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015));border:1px solid rgba(255,255,255,0.03);min-width:90px;text-align:center}
+
+  /* Timer cards list */
+  .timers{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+  .timer-row{display:flex;align-items:center;gap:10px;justify-content:space-between}
+  .timer-left{display:flex;gap:10px;align-items:center;flex:1}
+  .badge{
+    width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;background:linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03)
+  }
+  .timer-meta{flex:1}
+  .timer-meta .title{font-weight:700}
+  .timer-meta .sub{font-size:12px;color:var(--muted);margin-top:4px}
+  .timer-controls{display:flex;gap:8px;align-items:center}
+  .small-btn{padding:8px 10px;border-radius:10px;border:1px solid var(--glass-border);background:transparent;font-weight:700}
+
+  /* progress */
+  .progress{height:8px;border-radius:8px;background:rgba(255,255,255,0.03);overflow:hidden;margin-top:8px}
+  .prog-fill{height:100%;background:linear-gradient(90deg,var(--accent-a),var(--accent-b));width:0%}
+
+  /* charts area */
+  .charts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+  .charts canvas{width:100% !important;height:160px !important}
+
+  /* logs */
+  .logs{margin-top:10px;max-height:240px;overflow:auto;padding-right:6px}
+  .session{padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);margin-bottom:8px}
+  .session .meta small{color:var(--muted)}
+
+  /* footer utilities */
+  .util{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:8px}
+  .muted-small{color:var(--muted);font-size:12px}
+
+  /* mobile nav bottom (tiny) */
+  .bottom-nav{position:fixed;left:0;right:0;bottom:10px;display:flex;gap:8px;justify-content:center;padding:8px;pointer-events:auto}
+  .nav-wrap{width:100%;max-width:900px;padding:0 16px;display:flex;justify-content:space-between;align-items:center}
+  .nav-btn{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:10px 12px;border:1px solid rgba(255,255,255,0.03);font-weight:700}
+
+  /* responsive adjustments for larger */
+  @media(min-width:900px){
+    .wrap{padding:12px}
+    .hero{align-items:center}
+    .charts canvas{height:200px !important}
+    .timers{flex-direction:column}
+    .charts{grid-template-columns:1fr 1fr}
+  }
+  /* make sure wide devices don't auto-switch to desktop heavy layout */
+  @media(min-width:1200px){
+    .wrap{max-width:1200px}
+  }
+
+  /* tiny helpers */
+  input, textarea{font-family:Inter,system-ui}
+  textarea{resize:vertical}
+</style>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="app">
+  <div class="wrap" id="app">
+
+    <!-- HEADER -->
+    <header>
+      <div class="brand">
+        <div class="logo">M</div>
+        <div class="title">
+          <h1>Momentum</h1>
+          <p>Minimal • glass • offline</p>
+        </div>
+      </div>
+      <div class="hdr-controls">
+        <button class="icon-btn" id="btnExport">Export</button>
+        <button class="icon-btn" id="btnImport">Import</button>
+        <button class="primary-btn" id="btnInstall">Install</button>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="card hero" aria-hidden="false">
+      <div class="hero-left">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="muted">Today's total</div>
+            <div class="big-number" id="todayTotal">0m</div>
+          </div>
+          <div style="text-align:right">
+            <div class="muted">Streak</div>
+            <div style="font-weight:800" id="streak">0d</div>
+          </div>
+        </div>
+
+        <div class="chips" id="chipRow">
+          <!-- small summary chips inserted here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TIMERS -->
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <strong>Timers</strong>
+          <div class="muted">Start sessions, log time, stay consistent</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="icon-btn" id="btnAdd">+ Add</button>
+          <button class="icon-btn" id="btnDefaults">Defaults</button>
+        </div>
+      </div>
+
+      <div class="timers" id="timers"></div>
+      <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
+        <button class="icon-btn" id="btnClearToday">Clear Today</button>
+      </div>
+    </section>
+
+    <!-- CHARTS & LOGS -->
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><strong>Analytics</strong><div class="muted">Local • last 7 days</div></div>
+        <div class="muted-small" id="dateNow"></div>
+      </div>
+
+      <div class="charts" style="margin-top:10px">
+        <div class="card" style="padding:8px">
+          <canvas id="pie" ></canvas>
+        </div>
+        <div class="card" style="padding:8px">
+          <canvas id="bar"></canvas>
+        </div>
+      </div>
+
+      <div style="margin-top:10px" class="muted-small">Recent sessions</div>
+      <div class="logs" id="logs"></div>
+    </section>
+
+    <!-- NOTES -->
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><strong>Quick note</strong><div class="muted">Write what you achieved</div></div>
+        <div class="muted-small">Saved locally</div>
+      </div>
+      <div style="margin-top:8px">
+        <textarea id="note" placeholder="What did you do today?" style="width:100%;height:80px;background:transparent;border:1px solid rgba(255,255,255,0.03);padding:10px;border-radius:10px;color:#fff"></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px">
+          <button class="primary-btn" id="saveNote">Save</button>
+        </div>
+      </div>
+    </section>
+
+    <footer style="text-align:center;color:var(--muted);font-size:12px;margin-bottom:86px">Offline-first • No cloud • Single file</footer>
+  </div>
+</div>
+
+<!-- bottom nav -->
+<div class="bottom-nav" aria-hidden="false">
+  <div class="nav-wrap">
+    <button class="nav-btn" id="navHome">Home</button>
+    <button class="nav-btn" id="navTimers">Timers</button>
+    <button class="nav-btn" id="navCharts">Charts</button>
+    <button class="nav-btn" id="navLogs">Logs</button>
+  </div>
+</div>
+
+<script>
+/* Minimal Momentum — mobile-first single-file app
+   - LocalStorage
+   - Timers per category
+   - Goals
+   - Charts (Chart.js)
+   - Export/Import JSON
+   - PWA manifest + simple service worker
+*/
+
+/* ---------- Utilities ---------- */
+const uid = (n=8)=>Math.random().toString(36).slice(2,2+n);
+const fmt = s=>{
+  if(s<60) return s+'s';
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60);
+  if(h) return h+'h '+m+'m';
+  return m+'m';
+};
+const todayKey = d=>d.toISOString().slice(0,10);
+
+/* ---------- State & storage ---------- */
+const KEY = 'momentum.min.v1';
+let state = {
+  categories:{}, // id: {id,name,goalSeconds,running,currentStart}
+  sessions:[], // {id,catId,start,stop,duration,date,notes}
+  notes:{}, // date: text
+  created: Date.now()
+};
+
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw) state = JSON.parse(raw);
+  }catch(e){ console.warn('load fail',e) }
+}
+load();
+
+/* ---------- Defaults ---------- */
+function ensureDefaults(){
+  if(Object.keys(state.categories).length) return;
+  addCategory('Study',6);
+  addCategory('Project',4);
+  addCategory('Workout',1);
+  addCategory('Social',0.5);
+  save(); renderAll();
+}
+
+/* ---------- Category functions ---------- */
+function addCategory(name, hours=1){
+  const id = uid(6);
+  state.categories[id] = {id,name,goalSeconds:Math.round(hours*3600),running:false,currentStart:null};
+  save(); renderAll(); return id;
+}
+function removeCategory(id){
+  delete state.categories[id];
+  state.sessions = state.sessions.filter(s=>s.catId!==id);
+  save(); renderAll();
+}
+
+/* ---------- Timers ---------- */
+function startTimer(id){
+  // stop others
+  Object.values(state.categories).forEach(c=>{ if(c.running) stopTimer(c.id) });
+  const cat = state.categories[id]; if(!cat) return;
+  cat.running = true; cat.currentStart = Date.now(); save(); renderAll(); startTicker();
+}
+function stopTimer(id, note=''){
+  const cat = state.categories[id]; if(!cat || !cat.running) return;
+  const start = cat.currentStart || Date.now(); const stop = Date.now();
+  const dur = Math.round((stop-start)/1000);
+  cat.running = false; cat.currentStart = null;
+  const s = {id:uid(8),catId:id,start,stop,duration:dur,date: todayKey(new Date(start)),notes:note||''};
+  state.sessions.push(s); save(); renderAll();
+}
+function addManual(id, minutes){
+  const dur = Math.round(minutes*60); const start = Date.now()-dur*1000;
+  const s = {id:uid(8),catId:id,start,stop:Date.now(),duration:dur,date:todayKey(new Date(start)),notes:'manual'};
+  state.sessions.push(s); save(); renderAll();
+}
+
+/* ---------- Stats helpers ---------- */
+function totalForDate(d){
+  return state.sessions.filter(s=>s.date===d).reduce((a,b)=>a+b.duration,0);
+}
+function totalForCatDate(catId,d){
+  return state.sessions.filter(s=>s.catId===catId && s.date===d).reduce((a,b)=>a+b.duration,0);
+}
+function lastNDays(n=7, end=new Date()){
+  const out=[]; for(let i=n-1;i>=0;i--){ const dt=new Date(end); dt.setDate(dt.getDate()-i); out.push(todayKey(dt)); } return out;
+}
+
+/* ---------- DOM refs ---------- */
+const timersEl = document.getElementById('timers');
+const todayTotalEl = document.getElementById('todayTotal');
+const streakEl = document.getElementById('streak');
+const chipRow = document.getElementById('chipRow');
+const logsEl = document.getElementById('logs');
+const dateNowEl = document.getElementById('dateNow');
+const noteEl = document.getElementById('note');
+
+/* ---------- Render ---------- */
+function renderAll(){
+  renderHeader();
+  renderTimers();
+  renderSummary();
+  renderCharts();
+  renderLogs();
+  populateNote();
+}
+function renderHeader(){
+  dateNowEl.innerText = new Date().toLocaleDateString();
+}
+function renderTimers(){
+  timersEl.innerHTML = '';
+  const ids = Object.keys(state.categories);
+  ids.forEach(id=>{
+    const c = state.categories[id];
+    const row = document.createElement('div'); row.className='timer-row';
+    const left = document.createElement('div'); left.className='timer-left';
+    left.innerHTML = `<div class="badge">${(c.name[0]||'•')}</div>
+      <div class="timer-meta">
+        <div class="title">${c.name}</div>
+        <div class="sub">Goal: ${fmt(c.goalSeconds)}</div>
+        <div class="progress"><div class="prog-fill" id="fill_${id}" style="width:0%"></div></div>
+      </div>`;
+    const controls = document.createElement('div'); controls.className='timer-controls';
+    const start = document.createElement('button'); start.className='small-btn'; start.innerText='Start';
+    const stop = document.createElement('button'); stop.className='small-btn'; stop.innerText='Stop'; stop.disabled = !c.running;
+    const log = document.createElement('button'); log.className='small-btn'; log.innerText='Log';
+    const del = document.createElement('button'); del.className='small-btn'; del.innerText='Del';
+    if(c.running) start.disabled = true;
+    controls.appendChild(start); controls.appendChild(stop); controls.appendChild(log); controls.appendChild(del);
+    row.appendChild(left); row.appendChild(controls);
+    timersEl.appendChild(row);
+
+    // status and dynamic time
+    const fillEl = document.getElementById(`fill_${id}`);
+    const seconds = totalForCatDate(id,todayKey(new Date())) + (c.running && c.currentStart ? Math.round((Date.now()-c.currentStart)/1000) : 0);
+    const pct = Math.min(100, Math.round((seconds / (c.goalSeconds||1)) * 100));
+    if(fillEl) fillEl.style.width = pct + '%';
+
+    // events
+    start.onclick = ()=>startTimer(id);
+    stop.onclick = ()=>{ const note = prompt('Session note (optional)','') || ''; stopTimer(id,note); };
+    log.onclick = ()=>{ const m = parseFloat(prompt('Minutes to add','30')); if(!isNaN(m) && m>0) addManual(id,m); };
+    del.onclick = ()=>{ if(confirm('Delete category and its sessions?')) removeCategory(id); };
+  });
+}
+function renderSummary(){
+  const today = todayKey(new Date());
+  const tot = totalForDate(today);
+  todayTotalEl.innerText = fmt(tot);
+  // streak: count backwards until a day < 10min
+  const days = lastNDays(30);
+  let streak = 0;
+  for(let i=days.length-1;i>=0;i--){
+    if(totalForDate(days[i]) > 10*60) streak++;
+    else break;
+  }
+  streakEl.innerText = streak+'d';
+
+  // chips
+  chipRow.innerHTML = '';
+  Object.keys(state.categories).forEach(id=>{
+    const c = state.categories[id];
+    const sec = totalForCatDate(id,today);
+    const el = document.createElement('div'); el.className='chip';
+    el.innerHTML = `<div style="font-weight:700">${c.name}</div><div style="font-size:12px;color:var(--muted)">${fmt(sec)}</div>`;
+    chipRow.appendChild(el);
+  });
+}
+function renderLogs(){
+  logsEl.innerHTML = '';
+  const recent = state.sessions.slice().reverse().slice(0,80);
+  recent.forEach(s=>{
+    const cat = state.categories[s.catId] ? state.categories[s.catId].name : 'Unknown';
+    const d = new Date(s.start).toLocaleString();
+    const div = document.createElement('div'); div.className='session';
+    div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
+      <div><strong>${cat}</strong> <small style="color:var(--muted)">• ${fmt(s.duration)}</small></div>
+      <div style="font-size:12px;color:var(--muted)">${d}</div>
+    </div>
+    ${s.notes?`<div style="margin-top:6px"><small style="color:var(--muted)">${s.notes}</small></div>`:''}`;
+    logsEl.appendChild(div);
+  });
+}
+function populateNote(){ noteEl.value = state.notes[todayKey(new Date())] || ''; }
+
+/* ---------- Charts ---------- */
+let pieChart, barChart;
+function renderCharts(){
+  const ctxPie = document.getElementById('pie').getContext('2d');
+  const ctxBar = document.getElementById('bar').getContext('2d');
+  const cats = Object.keys(state.categories);
+  const labels = cats.map(id=>state.categories[id].name);
+  const today = todayKey(new Date());
+  const pieData = cats.map(id=>Math.round(totalForCatDate(id,today)/60));
+  if(pieChart) pieChart.destroy();
+  pieChart = new Chart(ctxPie, {
+    type:'doughnut',
+    data:{labels, datasets:[{data:pieData, backgroundColor: labels.map((_,i)=>['#7c5cff','#00d4ff','#ff9f43','#2dd4bf'][i%4])}]},
+    options:{plugins:{legend:{display:true,position:'bottom'}},maintainAspectRatio:false}
+  });
+
+  // bar: last 7 days
+  const days = lastNDays(7);
+  const bars = days.map(d=>Math.round(totalForDate(d)/60));
+  if(barChart) barChart.destroy();
+  barChart = new Chart(ctxBar, {
+    type:'bar',
+    data:{labels: days.map(d=>d.slice(5)), datasets:[{label:'Minutes',data:bars,backgroundColor:'#7c5cff'}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}},maintainAspectRatio:false}
+  });
+}
+
+/* ---------- Ticker for running timers ---------- */
+let ticker = null;
+function startTicker(){
+  if(ticker) return;
+  ticker = setInterval(()=>{
+    renderTimers();
+    renderSummary();
+    if(Math.random()<0.05) renderCharts();
+  },1000);
+}
+function stopTicker(){ if(ticker){ clearInterval(ticker); ticker=null; } }
+
+/* ---------- Export / Import ---------- */
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'momentum.json'; a.click();
+}
+function handleImport(file){
+  const r = new FileReader();
+  r.onload = e=>{
+    try{
+      const d = JSON.parse(e.target.result);
+      if(confirm('Replace local data with imported data?')){ state = d; save(); renderAll(); alert('Imported'); }
+    }catch(err){ alert('Invalid JSON'); }
+  }; r.readAsText(file);
+}
+
+/* ---------- Note save ---------- */
+document.getElementById('saveNote').onclick = ()=>{
+  state.notes = state.notes || {};
+  state.notes[todayKey(new Date())] = noteEl.value.trim();
+  save(); alert('Saved note locally');
+};
+
+/* ---------- Buttons ---------- */
+document.getElementById('btnAdd').onclick = ()=>{
+  const name = prompt('Category name','Reading'); if(!name) return;
+  const hrs = parseFloat(prompt('Daily goal in hours','1')) || 1; addCategory(name,hrs);
+};
+document.getElementById('btnDefaults').onclick = ()=>ensureDefaults();
+document.getElementById('btnClearToday').onclick = ()=>{
+  if(!confirm('Clear today sessions and note?')) return;
+  const t = todayKey(new Date());
+  state.sessions = state.sessions.filter(s=>s.date!==t);
+  if(state.notes) delete state.notes[t];
+  save(); renderAll();
+};
+document.getElementById('btnExport').onclick = exportJSON;
+document.getElementById('btnImport').onclick = ()=>{
+  const inp = document.createElement('input'); inp.type='file'; inp.accept='.json,application/json'; inp.onchange = ()=>handleImport(inp.files[0]); inp.click();
+};
+
+/* ---------- Nav buttons (single page scroll) ---------- */
+document.getElementById('navHome').onclick = ()=>window.scrollTo({top:0,behavior:'smooth'});
+document.getElementById('navTimers').onclick = ()=>document.querySelector('.card:nth-of-type(2)').scrollIntoView({behavior:'smooth'});
+document.getElementById('navCharts').onclick = ()=>document.querySelector('.card:nth-of-type(3)').scrollIntoView({behavior:'smooth'});
+document.getElementById('navLogs').onclick = ()=>document.querySelector('.card:nth-of-type(3)').scrollIntoView({behavior:'smooth'});
+
+/* ---------- Install / PWA ---------- */
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('btnInstall').style.display = 'inline-block';
+});
+document.getElementById('btnInstall').onclick = async ()=>{
+  if(deferredPrompt){ deferredPrompt.prompt(); const choice = await deferredPrompt.userChoice; deferredPrompt = null; }
+  else alert('Use browser menu -> Install (or your browser may not support prompt)');
+};
+
+/* ---------- Dynamic manifest ---------- */
+(function makeManifest(){
+  const manifest = {
+    name: "Momentum",
+    short_name: "Momentum",
+    start_url: ".",
+    display:"standalone",
+    background_color:"#071022",
+    theme_color:"#071022",
+    icons: [{
+      src: "data:image/svg+xml;base64," + btoa(`<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512'><rect rx='48' width='100%' height='100%' fill='#7c5cff'/><text x='50%' y='55%' font-size='260' text-anchor='middle' fill='white' font-family='Arial' font-weight='700'>M</text></svg>`),
+      sizes:"512x512",
+      type:"image/svg+xml"
+    }]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  let link = document.querySelector('link[rel="manifest"]');
+  if(!link){ link = document.createElement('link'); link.rel='manifest'; document.head.appendChild(link); }
+  link.href = url;
+})();
+
+/* ---------- Service worker (inline blob) ---------- */
+(function registerSW(){
+  if('serviceWorker' in navigator){
+    const code = `
+      const CACHE = 'momentum-min-v1';
+      const urls = ['./'];
+      self.addEventListener('install', e=>{ self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c=>c.addAll(urls)).catch(()=>{})); });
+      self.addEventListener('activate', e=>e.waitUntil(self.clients.claim()));
+      self.addEventListener('fetch', e=>{ if(e.request.method !== 'GET') return; e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)).catch(()=>caches.match('./'))); });
+    `;
+    const blob = new Blob([code], {type:'application/javascript'});
+    const swUrl = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl).then(()=>console.log('sw ok')).catch(()=>console.warn('sw fail'));
+  }
+})();
+
+/* ---------- Start up ---------- */
+ensureDefaults(); renderAll(); startTicker();
+window.addEventListener('visibilitychange', ()=>{ if(document.hidden) save(); });
+window.addEventListener('beforeunload', save);
+
+/* quick debug expose */
+window.momentumState = ()=>state;
+</script>
+</body>
+</html>
