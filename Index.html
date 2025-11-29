@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Momentum — Personal Time Tracker (PWA)</title>
+
+<!-- Basic styling + glassmorphism, mobile-first -->
+<style>
+  :root{
+    --bg1: linear-gradient(135deg,#0f1724 0%, #071028 100%);
+    --glass: rgba(255,255,255,0.06);
+    --glass-2: rgba(255,255,255,0.04);
+    --accent: linear-gradient(90deg,#7c5cff,#00d4ff);
+    --card-radius: 14px;
+    --glass-border: rgba(255,255,255,0.08);
+    --muted: rgba(255,255,255,0.65);
+    --danger: #ff6b6b;
+    --success: #6be28a;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  html,body{height:100%;margin:0;background:var(--bg1);color:#fff;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+  *{box-sizing:border-box}
+  .app{
+    min-height:100vh;
+    padding:20px;
+    display:flex;
+    gap:18px;
+    align-items:flex-start;
+    justify-content:center;
+  }
+
+  /* container */
+  .container{
+    width:100%;
+    max-width:1100px;
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:16px;
+  }
+
+  /* Header */
+  header{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .brand{
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+  .logo{
+    width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#5b39ff,#00d4ff);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;box-shadow:0 6px 18px rgba(0,0,0,0.4);
+  }
+  h1{margin:0;font-size:18px;letter-spacing:0.2px}
+  p.lead{margin:0;font-size:12px;color:var(--muted)}
+
+  /* top controls */
+  .top-controls{display:flex;gap:8px;align-items:center}
+  .btn{
+    background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+    border:1px solid var(--glass-border);
+    padding:8px 12px;border-radius:10px;color:#fff;font-weight:600;font-size:13px;backdrop-filter: blur(6px);
+  }
+  .btn.ghost{background:transparent}
+  .btn.primary{
+    background:var(--accent);
+    color:#071028;border:none;
+    box-shadow:0 8px 30px rgba(124,92,255,0.12);
+  }
+
+  /* layout cards */
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:12px;
+  }
+
+  /* Big top dashboard card */
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+    border-radius: var(--card-radius);
+    padding:12px;
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 6px 30px rgba(5,8,20,0.6);
+  }
+
+  /* timers list */
+  .timers{
+    display:grid;gap:10px;
+  }
+  .timer{
+    display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);
+  }
+  .timer .meta{flex:1;display:flex;flex-direction:column;gap:6px}
+  .cat-title{display:flex;justify-content:space-between;align-items:center}
+  .cat{font-weight:700}
+  .goal{font-size:12px;color:var(--muted)}
+  .big-time{font-weight:800;font-size:18px}
+
+  .controls{display:flex;gap:8px;align-items:center}
+  .small{padding:6px 8px;font-size:13px;border-radius:8px}
+  .start{background:linear-gradient(90deg,#00d4ff,#7c5cff);color:#071028;border:none}
+  .stop{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+  .danger{background:var(--danger);color:#071028;border:none}
+
+  /* progress */
+  .progress{
+    height:8px;border-radius:8px;background:rgba(255,255,255,0.04);overflow:hidden;margin-top:6px;
+  }
+  .progress > b{display:block;height:100%;background:linear-gradient(90deg,#7c5cff,#00d4ff)}
+
+  /* analytics row */
+  .analytics{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+  .charts{display:flex;gap:12px;flex-wrap:wrap}
+  canvas{width:100% !important;max-width:100%}
+
+  /* small utilities */
+  .row{display:flex;gap:8px;align-items:center}
+  .muted{color:var(--muted);font-size:13px}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+
+  /* logs */
+  .logs{max-height:320px;overflow:auto;padding-right:6px}
+  .session{padding:8px;border-radius:8px;margin-bottom:8px;background:linear-gradient(180deg, rgba(255,255,255,0.016), transparent);border:1px solid rgba(255,255,255,0.03)}
+  .session small{color:var(--muted);display:block;margin-top:6px}
+
+  /* footer utilities */
+  .util-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+
+  /* responsive */
+  @media(min-width:880px){
+    .container{grid-template-columns: 360px 1fr;align-items:start}
+    .grid{grid-template-columns:1fr}
+    .analytics{grid-template-columns:1fr 1fr}
+  }
+
+  /* nice micro interactions */
+  .fade-in{animation:fadeIn .4s ease both}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+
+<!-- Chart.js - CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app">
+    <div class="container fade-in" id="appRoot">
+
+      <!-- HEADER -->
+      <header>
+        <div class="brand">
+          <div class="logo">M</div>
+          <div>
+            <h1>Momentum</h1>
+            <p class="lead">Personal tracker • glassmorphism • offline-first</p>
+          </div>
+        </div>
+
+        <div class="top-controls">
+          <button class="btn ghost" id="btnImport">Import</button>
+          <button class="btn ghost" id="btnExport">Export</button>
+          <button class="btn ghost" id="btnReset">Reset</button>
+          <button class="btn primary" id="btnInstall">Install</button>
+        </div>
+      </header>
+
+      <main style="display:flex;gap:12px">
+        <!-- LEFT: controls, timers -->
+        <section class="card" style="width:100%;max-width:380px;">
+          <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div>
+              <strong>Active Timers</strong>
+              <div class="muted" style="font-size:12px">Start/Stop sessions — data stored locally</div>
+            </div>
+            <div>
+              <button class="btn ghost" id="btnAddCategory">+ Category</button>
+              <button class="btn ghost" id="btnDefaults">Add defaults</button>
+            </div>
+          </div>
+
+          <div id="timersList" class="timers"></div>
+
+          <hr style="border:none;height:1px;background:linear-gradient(90deg,transparent,#ffffff20,transparent);margin:12px 0;border-radius:2px">
+
+          <div style="margin-top:8px;">
+            <label>Quick note for today</label>
+            <textarea id="todayNote" placeholder="What did you achieve today?" style="width:100%;height:80px;background:transparent;border:1px solid rgba(255,255,255,0.03);padding:10px;border-radius:8px;color:#fff"></textarea>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+              <button class="btn ghost" id="btnSaveNote">Save note</button>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- RIGHT: dashboard & analytics -->
+        <section style="flex:1;display:flex;flex-direction:column;gap:12px">
+
+          <div class="card">
+            <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
+              <div>
+                <strong style="font-size:16px">Today's Summary</strong>
+                <div class="muted">Totals, progress, and streaks</div>
+              </div>
+              <div style="text-align:right">
+                <div class="muted">Date</div>
+                <div id="todayDate" style="font-weight:800;font-size:14px"></div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+              <div style="flex:1;min-width:160px">
+                <div class="muted">Total productive time</div>
+                <div style="font-size:22px;font-weight:900" id="totalToday">0m</div>
+                <div class="muted">Streak</div>
+                <div style="font-weight:800" id="streakCount">0 days</div>
+              </div>
+              <div style="flex:1;min-width:160px">
+                <div class="muted">Goal completion</div>
+                <div class="muted" id="goalSummary">—</div>
+                <div style="margin-top:8px" id="goalsBar"></div>
+              </div>
+              <div style="min-width:180px">
+                <div class="muted">Export / import</div>
+                <div style="display:flex;gap:8px;margin-top:8px">
+                  <button class="btn ghost small" id="btnExport2">Export JSON</button>
+                  <button class="btn ghost small" id="btnImport2">Import JSON</button>
+                </div>
+                <div style="margin-top:8px" class="muted">Install as app</div>
+                <div style="margin-top:8px" id="installHint" class="muted">Tap 'Install' or use browser menu</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- charts -->
+          <div class="card analytics">
+            <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
+              <strong>Analytics</strong>
+              <div class="muted">Local charts • Last 7 days</div>
+            </div>
+
+            <div class="charts" style="margin-top:12px">
+              <div style="flex:1;min-width:260px">
+                <canvas id="pieChart" height="220"></canvas>
+              </div>
+              <div style="flex:1;min-width:300px">
+                <canvas id="barChart" height="220"></canvas>
+              </div>
+            </div>
+
+            <div style="margin-top:10px" class="muted">Session log</div>
+            <div class="logs" id="sessionLogs" style="margin-top:8px"></div>
+          </div>
+
+          <!-- goals and settings -->
+          <div class="card" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+            <div style="display:flex;gap:10px;align-items:center">
+              <div>
+                <strong>Goals</strong>
+                <div class="muted">Set daily time targets per category</div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center">
+              <button class="btn ghost small" id="btnClearDay">Clear today</button>
+              <button class="btn ghost small" id="btnExportJSON">Download JSON</button>
+            </div>
+          </div>
+
+        </section>
+      </main>
+
+      <footer style="margin-top:14px;display:flex;justify-content:center;color:var(--muted);font-size:13px">
+        Built for you — offline-first. No cloud, no tracking, just momentum.
+      </footer>
+
+    </div>
+  </div>
+
+<script>
+/* -------------------------
+   Momentum Single-file App
+   - LocalStorage persistence
+   - PWA: dynamic manifest + service worker blob
+   - Charts via Chart.js
+   - Mobile optimized + glass UI
+   ------------------------- */
+
+/* ---------- Utilities ---------- */
+const uid = (n=8)=>Math.random().toString(36).slice(2,2+n);
+const fmtTime = s=>{
+  if(s<60) return s + 's';
+  const h = Math.floor(s/3600);
+  const m = Math.floor((s%3600)/60);
+  const parts = [];
+  if(h) parts.push(h+'h');
+  if(m) parts.push(m+'m');
+  if(!h && !m) parts.push(Math.floor(s)+'s');
+  return parts.join(' ');
+}
+const todayStr = (d=new Date())=>{
+  return d.toISOString().slice(0,10);
+}
+
+/* ---------- App State & Storage ---------- */
+const STORAGE_KEY = 'momentum.v1';
+let state = {
+  categories: {
+    // id: {id,name, goalSeconds, color}
+  },
+  sessions: [
+    // {id,catId,start,stop,duration,notes,date}
+  ],
+  notes: {}, // date -> text
+  lastActive: null,
+  settings: {
+    createdAt: Date.now()
+  }
+};
+
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+function loadState(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){
+    try{ state = JSON.parse(raw); }
+    catch(e){ console.error('bad state',e); localStorage.removeItem(STORAGE_KEY); }
+  }
+}
+loadState();
+
+/* ---------- Default categories if empty ---------- */
+function addDefaultCategories(){
+  if(Object.keys(state.categories).length) return;
+  const defs = [
+    {name:'Study', goalHours:6},
+    {name:'Project', goalHours:4},
+    {name:'Workout', goalHours:1},
+    {name:'Social', goalHours:0.5}
+  ];
+  defs.forEach(d=>{
+    const id = uid(6);
+    state.categories[id] = {id,name:d.name, goalSeconds:Math.round(d.goalHours*3600), color:null, running:false, currentStart:null};
+  });
+  saveState(); renderAll();
+}
+
+/* ---------- Category management ---------- */
+function addCategory(name, goalHours=1){
+  const id = uid(6);
+  state.categories[id] = {id,name, goalSeconds:Math.round(goalHours*3600), color:null, running:false, currentStart:null};
+  saveState(); renderAll(); return id;
+}
+function removeCategory(id){
+  delete state.categories[id];
+  state.sessions = state.sessions.filter(s=>s.catId!==id);
+  saveState(); renderAll();
+}
+
+/* ---------- Timer control ---------- */
+function startTimer(catId){
+  // stop other timers? We'll allow multiple if user wants, but set to single exclusive: stop all others.
+  Object.values(state.categories).forEach(c=>{
+    if(c.running && c.id !== catId) stopTimer(c.id);
+  });
+  const cat = state.categories[catId];
+  if(!cat) return;
+  if(cat.running) return;
+  cat.running = true;
+  cat.currentStart = Date.now();
+  state.lastActive = Date.now();
+  saveState(); renderAll();
+  tickInterval(); // ensure UI updates
+}
+function stopTimer(catId, note=''){
+  const cat = state.categories[catId];
+  if(!cat || !cat.running) return;
+  const start = cat.currentStart || Date.now();
+  const stop = Date.now();
+  const dur = Math.round((stop - start)/1000);
+  cat.running = false;
+  cat.currentStart = null;
+  // record session
+  const session = {id: uid(8), catId, start, stop, duration:dur, notes:note||'', date: todayStr(new Date(start))};
+  state.sessions.push(session);
+  state.lastActive = Date.now();
+  saveState(); renderAll();
+}
+function stopAllRunning(){
+  Object.values(state.categories).forEach(c=>{ if(c.running) stopTimer(c.id) });
+}
+
+/* ---------- Stats helpers ---------- */
+function totalSecondsForDate(dateStr){
+  return state.sessions.filter(s=>s.date===dateStr).reduce((acc,s)=>acc+s.duration,0);
+}
+function totalSecondsForCategoryAndDate(catId,dateStr){
+  return state.sessions.filter(s=>s.catId===catId && s.date===dateStr).reduce((acc,s)=>acc+s.duration,0);
+}
+function lastNDates(n=7, end=new Date()){
+  const res = [];
+  for(let i=n-1;i>=0;i--){
+    const d = new Date(end);
+    d.setDate(d.getDate()-i);
+    res.push(todayStr(d));
+  }
+  return res;
+}
+
+/* ---------- UI Rendering ---------- */
+const timersList = document.getElementById('timersList');
+const sessionLogs = document.getElementById('sessionLogs');
+const totalTodayEl = document.getElementById('totalToday');
+const streakCountEl = document.getElementById('streakCount');
+const todayDateEl = document.getElementById('todayDate');
+const goalSummaryEl = document.getElementById('goalSummary');
+const goalsBarEl = document.getElementById('goalsBar');
+const todayNoteEl = document.getElementById('todayNote');
+
+function renderAll(){
+  renderTimers();
+  renderSummary();
+  renderCharts();
+  renderSessions();
+  populateTodayNote();
+}
+function renderTimers(){
+  timersList.innerHTML = '';
+  // ensure each category has id in object
+  Object.keys(state.categories).forEach(id=>{
+    state.categories[id].id = id;
+  });
+  Object.values(state.categories).forEach(cat=>{
+    const el = document.createElement('div'); el.className='timer';
+    const color = cat.color || '#7c5cff';
+    el.innerHTML = `
+      <div style="width:48px;height:48px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px">
+        ${cat.name[0] || '•'}
+      </div>
+      <div class="meta">
+        <div class="cat-title">
+          <div>
+            <div class="cat">${cat.name}</div>
+            <div class="goal">Goal: ${fmtTime(cat.goalSeconds)} / day</div>
+          </div>
+          <div style="text-align:right">
+            <div class="big-time" id="time_${cat.id}">0m</div>
+            <div class="muted" style="font-size:12px" id="status_${cat.id}">${cat.running ? 'Running' : 'Idle'}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+          <div style="flex:1">
+            <div class="progress"><b id="prog_${cat.id}" style="width:0%"></b></div>
+          </div>
+          <div class="controls">
+            <button class="btn small start" data-start="${cat.id}" ${cat.running ? 'disabled' : ''}>Start</button>
+            <button class="btn small stop" data-stop="${cat.id}" ${cat.running ? '' : 'disabled'}>Stop</button>
+            <button class="btn small" data-log="${cat.id}">Log</button>
+            <button class="btn small" data-del="${cat.id}">Del</button>
+          </div>
+        </div>
+      </div>
+    `;
+    timersList.appendChild(el);
+
+    // update dynamic values
+    const secondsToday = totalSecondsForCategoryAndDate(cat.id,todayStr());
+    document.getElementById(`time_${cat.id}`).innerText = fmtTime(secondsToday);
+    const pct = Math.min(100, Math.round((secondsToday / (cat.goalSeconds||1)) * 100));
+    document.getElementById(`prog_${cat.id}`).style.width = pct + '%';
+    document.getElementById(`status_${cat.id}`).innerText = cat.running ? 'Running' : 'Idle';
+  });
+
+  // add event delegation
+  timersList.querySelectorAll('[data-start]').forEach(btn=>{
+    btn.onclick = e=>{
+      const id = btn.dataset.start;
+      startTimer(id);
+    }
+  });
+  timersList.querySelectorAll('[data-stop]').forEach(btn=>{
+    btn.onclick = e=>{
+      const id = btn.dataset.stop;
+      const note = prompt('Add note for this session (optional):','') || '';
+      stopTimer(id,note);
+    }
+  });
+  timersList.querySelectorAll('[data-log]').forEach(btn=>{
+    btn.onclick = e=>{
+      const id = btn.dataset.log;
+      const manualMin = prompt('Add manual minutes to record (e.g., 30)') || '';
+      const m = parseFloat(manualMin);
+      if(!m || m<=0){ alert('invalid'); return; }
+      const dur = Math.round(m*60);
+      const start = Date.now() - dur*1000;
+      const session = {id: uid(8), catId:id, start, stop: Date.now(), duration: dur, notes:'manual add', date: todayStr(new Date(start))};
+      state.sessions.push(session); saveState(); renderAll();
+    }
+  });
+  timersList.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick = e=>{
+      const id = btn.dataset.del;
+      if(confirm('Delete category and its sessions?')){ removeCategory(id); }
+    }
+  });
+}
+
+/* ---------- Render summary ---------- */
+function renderSummary(){
+  todayDateEl.innerText = new Date().toLocaleDateString();
+  const tot = totalSecondsForDate(todayStr());
+  totalTodayEl.innerText = fmtTime(tot);
+  // streak: days with >10mins productive counted
+  const dates = lastNDates(30);
+  let streak = 0;
+  for(let i=0;i<dates.length;i++){
+    if(totalSecondsForDate(dates[dates.length-1-i]) > 10*60) streak++;
+    else break;
+  }
+  streakCountEl.innerText = streak + ' day' + (streak===1?'':'s');
+  // goal summary
+  const catVals = Object.values(state.categories);
+  if(!catVals.length) goalSummaryEl.innerText = 'No categories';
+  else {
+    const comp = catVals.map(c=>{
+      const sec = totalSecondsForCategoryAndDate(c.id,todayStr());
+      return {name:c.name,pct: Math.round( (sec/(c.goalSeconds||1))*100 ), sec};
+    });
+    goalSummaryEl.innerText = comp.map(x=>`${x.name}: ${x.pct}%`).join(' • ');
+    // small progress bar
+    goalsBarEl.innerHTML = comp.map(x=>`<div style="display:inline-block;margin-right:6px;font-size:12px">${x.name}: ${fmtTime(x.sec)}</div>`).join('');
+  }
+}
+
+/* ---------- Sessions log ---------- */
+function renderSessions(){
+  const recent = state.sessions.slice().reverse().slice(0,60);
+  sessionLogs.innerHTML = recent.map(s=>{
+    const cat = state.categories[s.catId];
+    const name = cat ? cat.name : 'Unknown';
+    const st = new Date(s.start).toLocaleString();
+    return `<div class="session">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><strong>${name}</strong> <span class="muted" style="font-size:12px">• ${fmtTime(s.duration)}</span></div>
+        <div class="muted" style="font-size:12px">${st}</div>
+      </div>
+      ${s.notes?`<small>${s.notes}</small>`:''}
+    </div>`;
+  }).join('');
+}
+
+/* ---------- Charts ---------- */
+let pieChart, barChart;
+function renderCharts(){
+  const catIds = Object.keys(state.categories);
+  const catNames = catIds.map(id=>state.categories[id].name);
+  const today = todayStr();
+  // pie: distribution of today's time
+  const pieData = catIds.map(id=> totalSecondsForCategoryAndDate(id,today) / 60 ); // minutes
+  const pieCtx = document.getElementById('pieChart').getContext('2d');
+  if(pieChart) pieChart.destroy();
+  pieChart = new Chart(pieCtx, {
+    type:'doughnut',
+    data:{
+      labels: catNames,
+      datasets:[{data: pieData }]
+    },
+    options:{plugins:{legend:{position:'bottom'}}}
+  });
+
+  // bar: last 7 days total time
+  const dates = lastNDates(7);
+  const bars = dates.map(d=> Math.round(totalSecondsForDate(d)/60) ); // minutes per day
+  const barCtx = document.getElementById('barChart').getContext('2d');
+  if(barChart) barChart.destroy();
+  barChart = new Chart(barCtx, {
+    type:'bar',
+    data:{labels: dates.map(x=>x.slice(5)), datasets:[{label:'Minutes/day',data:bars, barThickness:18}]},
+    options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
+  });
+}
+
+/* ---------- Notes ---------- */
+function populateTodayNote(){
+  const t = todayStr();
+  todayNoteEl.value = state.notes[t] || '';
+}
+document.getElementById('btnSaveNote').onclick = ()=>{
+  state.notes[todayStr()] = todayNoteEl.value.trim();
+  saveState(); alert('Saved note locally');
+}
+
+/* ---------- Export / Import ---------- */
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'momentum-export-'+todayStr()+'.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+function importJSONFromFile(file){
+  const r = new FileReader();
+  r.onload = e=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if(confirm('Import will replace local data. Continue?')){
+        state = data; saveState(); renderAll();
+        alert('Imported');
+      }
+    } catch(err){ alert('Invalid JSON'); }
+  };
+  r.readAsText(file);
+}
+document.getElementById('btnExport').onclick = exportJSON;
+document.getElementById('btnExport2').onclick = exportJSON;
+document.getElementById('btnExportJSON').onclick = exportJSON;
+
+document.getElementById('btnImport').onclick = ()=>{
+  const input = document.createElement('input'); input.type='file'; input.accept='.json,application/json';
+  input.onchange = ()=>{ if(input.files[0]) importJSONFromFile(input.files[0]) };
+  input.click();
+};
+document.getElementById('btnImport2').onclick = ()=>document.getElementById('btnImport').click();
+
+/* ---------- Clear / Reset ---------- */
+document.getElementById('btnReset').onclick = ()=>{
+  if(confirm('Clear all data and reset app? This cannot be undone.')){ localStorage.removeItem(STORAGE_KEY); location.reload(); }
+};
+document.getElementById('btnClearDay').onclick = ()=>{
+  if(confirm('Clear today sessions and notes?')){
+    const today = todayStr();
+    state.sessions = state.sessions.filter(s=>s.date!==today);
+    delete state.notes[today];
+    saveState(); renderAll();
+  }
+};
+
+/* ---------- Add category + defaults ---------- */
+document.getElementById('btnAddCategory').onclick = ()=>{
+  const name = prompt('Name of category','Reading');
+  if(!name) return;
+  const hours = parseFloat(prompt('Daily goal in hours (e.g., 2)', '1')) || 1;
+  addCategory(name,hours);
+};
+document.getElementById('btnDefaults').onclick = ()=>addDefaultCategories();
+
+/* ---------- Add manual session via UI button (in header) ---------- */
+// for quick manual testing, create a chooser
+// (not necessary now)
+
+/* ---------- Simple UI for download/import (duplicate small buttons) ---------- */
+document.getElementById('btnExport2').onclick = exportJSON;
+document.getElementById('btnImport2').onclick = ()=>document.getElementById('btnImport').click();
+
+/* ---------- Live ticking for running timers ---------- */
+let liveTicker = null;
+function tickInterval(){
+  if(liveTicker) return;
+  liveTicker = setInterval(()=>{
+    // update active timer displays
+    Object.values(state.categories).forEach(cat=>{
+      const el = document.getElementById(`time_${cat.id}`);
+      if(!el) return;
+      let seconds = totalSecondsForCategoryAndDate(cat.id,todayStr());
+      if(cat.running && cat.currentStart) seconds += Math.round((Date.now() - cat.currentStart)/1000);
+      el.innerText = fmtTime(seconds);
+      const pct = Math.min(100, Math.round((seconds / (cat.goalSeconds||1)) * 100));
+      const prog = document.getElementById(`prog_${cat.id}`);
+      if(prog) prog.style.width = pct + '%';
+      const status = document.getElementById(`status_${cat.id}`);
+      if(status) status.innerText = cat.running ? 'Running' : 'Idle';
+    });
+    renderSummary();
+    // refresh charts occasionally
+    if(Math.random()<0.07) renderCharts();
+  }, 1000);
+}
+
+/* ---------- Startup actions ---------- */
+renderAll();
+tickInterval();
+
+/* ---------- Install / PWA dynamic manifest & service worker ---------- */
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('btnInstall').style.display = 'inline-block';
+});
+
+document.getElementById('btnInstall').onclick = async ()=>{
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+  } else {
+    alert('Use browser menu -> Install to add to home screen (or your browser does not support prompt).');
+  }
+};
+
+/* Dynamically create manifest blob and link it */
+(function createManifest(){
+  const manifest = {
+    short_name: "Momentum",
+    name: "Momentum — Offline Time Tracker",
+    start_url: ".",
+    display: "standalone",
+    background_color: "#071028",
+    theme_color: "#071028",
+    icons: [
+      {src: "data:image/svg+xml;base64," + btoa(`<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512'><rect rx='24' width='100%' height='100%' fill='#7c5cff'/><text x='50%' y='55%' font-size='260' text-anchor='middle' fill='white' font-family='Arial' font-weight='700'>M</text></svg>`), sizes:"512x512", type:"image/svg+xml"}
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  let link = document.querySelector('link[rel="manifest"]');
+  if(!link){ link = document.createElement('link'); link.rel='manifest'; document.head.appendChild(link); }
+  link.href = url;
+})();
+
+/* Create a simple service worker blob and register it */
+(function registerSW(){
+  if('serviceWorker' in navigator){
+    const swCode = `
+      const CACHE = 'momentum-static-v1';
+      const assets = ['./'];
+      self.addEventListener('install', e=>{
+        self.skipWaiting();
+        e.waitUntil(caches.open(CACHE).then(c=>c.addAll(assets)).catch(()=>{}));
+      });
+      self.addEventListener('activate', e=>{
+        e.waitUntil(self.clients.claim());
+      });
+      self.addEventListener('fetch', e=>{
+        if(e.request.method !== 'GET') return;
+        e.respondWith(caches.match(e.request).then(r=>r || fetch(e.request)).catch(()=>caches.match('./')));
+      });
+    `;
+    try{
+      const blob = new Blob([swCode], {type: 'application/javascript'});
+      const swUrl = URL.createObjectURL(blob);
+      navigator.serviceWorker.register(swUrl).then(reg=>{
+        console.log('SW registered:', reg);
+      }).catch(err=>{
+        console.warn('SW reg failed', err);
+      });
+    } catch(e){ console.warn('SW error', e); }
+  }
+})();
+
+/* ---------- Compatibility: save on visibility change ---------- */
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden) saveState();
+});
+window.addEventListener('beforeunload', ()=>{ saveState(); });
+
+/* ---------- Quick helpers: restore sample data if empty ---------- */
+if(Object.keys(state.categories).length===0){
+  // don't auto-add unless user taps defaults; but we provide visible button
+}
+
+/* ---------- small UX niceties: export via header export button ---------- */
+// already wired
+
+/* ---------- done ---------- */
+</script>
+</body>
+  </html>
