@@ -1,111 +1,865 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Momentum — Mobile First</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Momentum</title>
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        :root {
+            --primary-color: #007aff; /* iOS Blue */
+            --secondary-color: #34c759; /* iOS Green */
+            --tertiary-color: #ff9500; /* iOS Orange */
+            --background-color: #f2f2f7; /* iOS Light Gray Background */
+            --card-background: #ffffff;
+            --text-color: #000000;
+            --secondary-text-color: #8e8e93;
+            --border-color: #c6c6c8;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+            --spacing-unit: 16px;
+        }
 
-<style>
-:root{
-  --bg:#f3f6fb;
-  --card:#ffffff;
-  --muted:#6b7280;
-  --accent-blue:#0b69ff;
-  --accent-green:#13a45a;
-  --accent-teal:#06b6d4;
-  --accent-orange:#ff8a3d;
-  --radius:18px;
-  --shadow: 0 12px 30px rgba(8,12,20,0.06);
-  font-family: Inter, system-ui;
-}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-html,body{height:100%;margin:0;background:linear-gradient(180deg,#eef5fb 0%, #f6f8fc 100%);color:#071022;-webkit-font-smoothing:antialiased}
-*{box-sizing:border-box}
+        #app-container {
+            flex-grow: 1;
+            padding-bottom: 70px; /* Space for the bottom nav */
+            overflow-y: auto;
+        }
 
-.app{min-height:100vh;padding:16px;display:flex;align-items:flex-start;justify-content:center}
-.wrap{width:100%;max-width:720px;display:flex;flex-direction:column;gap:12px;padding-bottom:120px}
+        .page-section {
+            padding: var(--spacing-unit);
+            display: none;
+        }
 
-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand{display:flex;gap:12px;align-items:center}
-.logo{width:46px;height:46px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;box-shadow:0 6px 18px rgba(8,12,20,0.06);border:1px solid rgba(8,12,20,0.03)}
-.title h1{margin:0;font-size:18px}
-.title p{margin:0;font-size:12px;color:var(--muted)}
-.hdr-actions{display:flex;gap:8px}
-.btn{background:#fff;border:1px solid rgba(8,12,20,0.04);padding:8px 12px;border-radius:999px;font-weight:700;box-shadow:0 6px 16px rgba(8,12,20,0.04)}
+        .page-section.active {
+            display: block;
+        }
 
-.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid rgba(8,12,20,0.03);padding:12px}
+        /* iOS-style Card */
+        .card {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-unit);
+            padding: var(--spacing-unit);
+            box-shadow: 0 4px 12px var(--shadow-color);
+            transition: transform 0.1s ease-out;
+        }
 
-.hero{display:flex;flex-direction:column;gap:12px}
-.hero-top{display:flex;justify-content:space-between;align-items:center}
-.today-total{font-size:26px;font-weight:800}
-.muted{color:var(--muted);font-size:13px}
-.chip-row{display:flex;gap:10px;flex-wrap:wrap}
-.chip{background:#fff;border-radius:999px;padding:10px 14px;border:1px solid rgba(8,12,20,0.03);min-width:92px;text-align:center;font-weight:800}
-.chip small{display:block;color:var(--muted);font-weight:600;margin-top:6px}
+        .card-header {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: var(--spacing-unit);
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
 
-.charts-stack{display:flex;flex-direction:column;gap:12px;margin-top:6px}
-.chart-card{background:#fff;border-radius:14px;padding:10px;border:1px solid rgba(8,12,20,0.03);box-shadow:0 6px 18px rgba(8,12,20,0.04)}
-.chart-title{display:flex;justify-content:space-between;align-items:center;font-weight:800}
-.chart-wrap{width:100%;height:220px;position:relative}
+        /* Navigation Bar */
+        #bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background-color: var(--card-background);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -1px 3px var(--shadow-color);
+            z-index: 1000;
+        }
 
-.donut-center{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-weight:800;color:#071022;font-size:18px;pointer-events:none}
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 5px 10px;
+            cursor: pointer;
+            color: var(--secondary-text-color);
+            font-size: 0.7em;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
 
-.sessions{margin-top:10px}
-.session{padding:10px;border-radius:12px;border:1px solid rgba(8,12,20,0.03);margin-bottom:10px;background:#fff;display:flex;justify-content:space-between;align-items:center}
-.session small{color:var(--muted)}
+        .nav-item.active {
+            color: var(--primary-color);
+        }
 
-.timers-list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
-.tile{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:#fff;border:1px solid rgba(8,12,20,0.03)}
-.avatar{width:56px;height:56px;border-radius:12px;background:linear-gradient(180deg,#f8fafc,#ffffff);display:flex;align-items:center;justify-content:center;font-weight:800;color:#071022;border:1px solid rgba(8,12,20,0.03)}
-.tile-meta .title{font-weight:800}
-.tile-meta .sub{font-size:13px;color:var(--muted);margin-top:6px}
-.tile-actions{display:flex;gap:8px;align-items:center}
-.pill{border-radius:999px;padding:8px 12px;border:1px solid rgba(8,12,20,0.04);background:#fff;font-weight:800}
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 3px;
+        }
 
-.progress{height:8px;border-radius:999px;background:#f1f5f9;overflow:hidden;margin-top:8px}
-.progress b{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent-green),var(--accent-teal))}
+        /* Timer List and Controls */
+        #timers-list .card {
+            padding: 12px var(--spacing-unit);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-textarea{width:100%;min-height:120px;border-radius:12px;padding:12px;border:1px solid rgba(8,12,20,0.04);background:#fff;resize:vertical}
-.notes-list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
-.note-card{padding:12px;border-radius:12px;background:#fff;border:1px solid rgba(8,12,20,0.03)}
+        .timer-category-name {
+            font-weight: 600;
+            flex-grow: 1;
+            font-size: 1.1em;
+        }
 
-.bottom-nav{position:fixed;left:0;right:0;bottom:12px;display:flex;justify-content:center;pointer-events:auto}
-.nav-wrap{width:100%;max-width:720px;padding:0 16px;display:flex;justify-content:space-between;align-items:center}
-.nav-item{flex:1;text-align:center;padding:6px}
-.nav-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:12px}
-.nav-icon{width:22px;height:22px}
-.nav-label{font-size:12px;color:var(--muted)}
-.nav-active .nav-label{color:var(--accent-blue);font-weight:800}
-.nav-active svg *{stroke:var(--accent-blue); fill:var(--accent-blue)}
+        .timer-controls {
+            display: flex;
+            gap: 8px;
+        }
 
-@media(min-width:860px){
-  .chart-wrap{height:280px}
-  .charts-stack{gap:16px}
-}
-</style>
+        .timer-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.1s;
+        }
+
+        .btn-start { background-color: var(--secondary-color); color: white; }
+        .btn-stop { background-color: #ff3b30; /* iOS Red */ color: white; }
+        .btn-log { background-color: var(--tertiary-color); color: white; }
+        .btn-delete { background-color: var(--border-color); color: var(--text-color); }
+        .btn-add { background-color: var(--primary-color); color: white; width: 100%; }
+
+        .btn-start:active, .btn-stop:active, .btn-log:active, .btn-delete:active, .btn-add:active {
+            filter: brightness(0.9);
+        }
+
+        /* Progress Bar */
+        #daily-goal-progress {
+            margin-top: var(--spacing-unit);
+            height: 10px;
+            background-color: var(--border-color);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: var(--primary-color);
+            transition: width 0.3s ease-out;
+        }
+
+        /* Notes Page */
+        #note-textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-sizing: border-box;
+            margin-bottom: 10px;
+            font-size: 1em;
+            resize: none;
+        }
+
+        .note-card {
+            border-left: 5px solid var(--primary-color);
+            padding: 10px;
+        }
+
+        .note-card-date {
+            font-weight: 600;
+            color: var(--secondary-text-color);
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .note-card-content {
+            white-space: pre-wrap;
+        }
+
+        /* Home Page */
+        .home-summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .home-summary-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .summary-name {
+            font-weight: 500;
+        }
+
+        .summary-time {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* Data Management */
+        .data-management-controls {
+            display: flex;
+            gap: var(--spacing-unit);
+            margin-top: var(--spacing-unit);
+        }
+        
+        .data-management-controls > button, #import-file-input {
+            flex: 1;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--primary-color);
+            background-color: transparent;
+            color: var(--primary-color);
+            transition: background-color 0.1s, color 0.1s;
+        }
+
+        .data-management-controls > button:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        #import-file-input {
+            display: none;
+        }
+
+        .file-upload-label {
+            flex: 1;
+            display: block;
+            text-align: center;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--primary-color);
+            background-color: transparent;
+            color: var(--primary-color);
+            transition: background-color 0.1s, color 0.1s;
+        }
+
+        .file-upload-label:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Utility */
+        .text-center { text-align: center; }
+        .mb-2 { margin-bottom: 10px; }
+    </style>
 </head>
 <body>
 
-<div class="app">
-  <div class="wrap" id="app">
+    <div id="app-container">
+        <section id="home-page" class="page-section active">
+            <h1 class="text-center" style="font-size: 2em; margin-bottom: var(--spacing-unit);">Momentum</h1>
 
-    <header>
-      <div class="brand">
-        <div class="logo">M</div>
-        <div class="title">
-          <h1>Momentum</h1>
-          <p>Reports • Timers • Notes</p>
+            <div class="card">
+                <div class="card-header">Today's Total: <span id="today-total-time" style="color: var(--primary-color);">0h 0m</span></div>
+                <div id="daily-categories-list">
+                    </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Daily Breakdown</div>
+                <div class="text-center">
+                    <canvas id="daily-donut-chart" style="max-height: 250px;"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Weekly Performance (Minutes)</div>
+                <div class="text-center">
+                    <canvas id="weekly-line-chart" style="max-height: 250px;"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="timers-page" class="page-section">
+            <h2 class="text-center" style="color: var(--secondary-text-color); margin-bottom: var(--spacing-unit);">Active: <span id="active-timer-display" style="color: var(--primary-color);">None</span></h2>
+            
+            <div class="card">
+                <div class="card-header">Daily Goal Progress (6 Hours)</div>
+                <div id="daily-goal-progress">
+                    <div id="progress-bar"></div>
+                </div>
+                <p style="font-size: 0.9em; margin-top: 5px;">Goal: 6h 0m | Done: <span id="progress-done-time">0m</span></p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Timer Categories</div>
+                <div id="timers-list">
+                    </div>
+                <button class="timer-btn btn-add" id="add-category-btn" style="margin-top: var(--spacing-unit);">+ Add New Category</button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Data Management</div>
+                <div class="data-management-controls">
+                    <button id="export-data-btn">Export Data (JSON)</button>
+                    <input type="file" id="import-file-input" accept="application/json">
+                    <label for="import-file-input" class="file-upload-label">Import Data (JSON)</label>
+                </div>
+            </div>
+        </section>
+
+        <section id="notes-page" class="page-section">
+            <div class="card">
+                <div class="card-header">Today's Note</div>
+                <textarea id="note-textarea" placeholder="What did you do today?"></textarea>
+                <button class="timer-btn btn-start" id="save-note-btn" style="width: 100%;">Save Note</button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Previous Notes</div>
+                <div id="previous-notes-list">
+                    </div>
+            </div>
+        </section>
+    </div>
+
+    <nav id="bottom-nav">
+        <div class="nav-item active" data-page="home-page">
+            <span class="nav-icon">🏠</span>
+            <span>Home</span>
         </div>
-      </div>
-      <div class="hdr-actions">
-        <button class="btn" id="btnExport">Export</button>
-        <button class="btn" id="btnImport">Import</button>
-      </div>
-    </header>
+        <div class="nav-item" data-page="timers-page">
+            <span class="nav-icon">⏱️</span>
+            <span>Timers</span>
+        </div>
+        <div class="nav-item" data-page="notes-page">
+            <span class="nav-icon">📝</span>
+            <span>Notes</span>
+        </div>
+    </nav>
 
-    <main id="page-home" class="page">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        // --- Service Worker and Manifest Setup ---
+        const manifestContent = {
+            name: "Momentum",
+            short_name: "Momentum",
+            description: "A simple, offline, mobile-first performance tracker.",
+            start_url: "/",
+            display: "standalone",
+            background_color: "#f2f2f7",
+            theme_color: "#007aff",
+            icons: [
+                {
+                    src: "/icon-192.png",
+                    sizes: "192x192",
+                    type: "image/png"
+                },
+                {
+                    src: "/icon-512.png",
+                    sizes: "512x512",
+                    type: "image/png"
+                }
+            ]
+        };
+
+        const manifestBlob = new Blob([JSON.stringify(manifestContent)], { type: 'application/json' });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        document.querySelector('link[rel="manifest"]').setAttribute('href', manifestUrl);
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const swCode = `
+self.addEventListener('install', event => {
+    event.waitUntil(
+        caches.open('momentum-cache-v1').then(cache => {
+            return cache.addAll([
+                '/',
+                'index.html',
+                'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js'
+            ]);
+        })
+    );
+});
+
+self.addEventListener('fetch', event => {
+    event.respondWith(
+        caches.match(event.request).then(response => {
+            return response || fetch(event.request);
+        })
+    );
+});
+`;
+                const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(swBlob);
+
+                navigator.serviceWorker.register(swUrl)
+                    .then(reg => console.log('SW registered!', reg))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
+        }
+        
+        // --- Core State and LocalStorage ---
+        const LS_KEY_SESSIONS = 'momentum_sessions';
+        const LS_KEY_CATEGORIES = 'momentum_categories';
+        const LS_KEY_NOTES = 'momentum_notes';
+        const DAILY_GOAL_MINUTES = 6 * 60; // 6 hours in minutes
+        
+        let categories = [];
+        let sessions = [];
+        let notes = {};
+        let activeTimer = null;
+        let timerInterval = null;
+
+        const dateToYMD = (date) => date.toISOString().split('T')[0];
+
+        function loadData() {
+            try {
+                categories = JSON.parse(localStorage.getItem(LS_KEY_CATEGORIES)) || [
+                    { id: 'study', name: 'Study', color: '#007aff' },
+                    { id: 'project', name: 'Project', color: '#34c759' },
+                    { id: 'workout', name: 'Workout', color: '#ff9500' },
+                    { id: 'social', name: 'Social', color: '#ff3b30' }
+                ];
+                sessions = JSON.parse(localStorage.getItem(LS_KEY_SESSIONS)) || [];
+                notes = JSON.parse(localStorage.getItem(LS_KEY_NOTES)) || {};
+            } catch (e) {
+                console.error("Error loading data from LocalStorage:", e);
+                // Reset to defaults if parsing fails
+                categories = [
+                    { id: 'study', name: 'Study', color: '#007aff' },
+                    { id: 'project', name: 'Project', color: '#34c759' },
+                    { id: 'workout', name: 'Workout', color: '#ff9500' },
+                    { id: 'social', name: 'Social', color: '#ff3b30' }
+                ];
+                sessions = [];
+                notes = {};
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem(LS_KEY_CATEGORIES, JSON.stringify(categories));
+            localStorage.setItem(LS_KEY_SESSIONS, JSON.stringify(sessions));
+            localStorage.setItem(LS_KEY_NOTES, JSON.stringify(notes));
+        }
+
+        // --- Utility Functions ---
+
+        function formatMinutes(totalMinutes) {
+            const h = Math.floor(totalMinutes / 60);
+            const m = Math.round(totalMinutes % 60);
+            return `${h}h ${m}m`;
+        }
+
+        function getTodaySessions() {
+            const today = dateToYMD(new Date());
+            return sessions.filter(s => s.date === today);
+        }
+
+        function getWeeklySessions() {
+            const now = new Date();
+            const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const oneWeekAgoYMD = dateToYMD(oneWeekAgo);
+
+            return sessions.filter(s => s.date >= oneWeekAgoYMD);
+        }
+
+        function getMinutesByCategory(sessionsList) {
+            return sessionsList.reduce((acc, session) => {
+                acc[session.category_id] = (acc[session.category_id] || 0) + session.minutes;
+                return acc;
+            }, {});
+        }
+
+        function calculateDailyTotalMinutes() {
+            return getTodaySessions().reduce((total, session) => total + session.minutes, 0);
+        }
+
+        // --- Navigation ---
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const targetPage = this.dataset.page;
+                
+                document.querySelectorAll('.page-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(targetPage).classList.add('active');
+
+                document.querySelectorAll('.nav-item').forEach(nav => {
+                    nav.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                if (targetPage === 'home-page') {
+                    renderHome();
+                } else if (targetPage === 'timers-page') {
+                    renderTimers();
+                } else if (targetPage === 'notes-page') {
+                    renderNotes();
+                }
+            });
+        });
+
+        // --- HOME PAGE (Rendering & Charts) ---
+
+        let donutChart = null;
+        let lineChart = null;
+        
+        function renderHome() {
+            const todaySessions = getTodaySessions();
+            const totalMinutes = calculateDailyTotalMinutes();
+            document.getElementById('today-total-time').textContent = formatMinutes(totalMinutes);
+
+            const categoryMinutes = getMinutesByCategory(todaySessions);
+            const categoryData = categories.map(cat => ({
+                name: cat.name,
+                minutes: categoryMinutes[cat.id] || 0,
+                color: cat.color
+            })).filter(data => data.minutes > 0).sort((a, b) => b.minutes - a.minutes);
+            
+            // Render Categories List
+            const listHtml = categoryData.map(data => `
+                <div class="home-summary-item">
+                    <span class="summary-name" style="color: ${data.color};">${data.name}</span>
+                    <span class="summary-time">${formatMinutes(data.minutes)}</span>
+                </div>
+            `).join('');
+            document.getElementById('daily-categories-list').innerHTML = listHtml || '<p style="text-align: center; color: var(--secondary-text-color);">No activity recorded today.</p>';
+
+            // Render Donut Chart
+            if (donutChart) donutChart.destroy();
+            donutChart = new Chart(document.getElementById('daily-donut-chart'), {
+                type: 'doughnut',
+                data: {
+                    labels: categoryData.map(d => d.name),
+                    datasets: [{
+                        data: categoryData.map(d => d.minutes),
+                        backgroundColor: categoryData.map(d => d.color),
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: { callbacks: { label: (context) => `${context.label}: ${formatMinutes(context.parsed)}` } }
+                    }
+                }
+            });
+
+            // Render Line Chart
+            const weeklySessions = getWeeklySessions();
+            const weeklyData = {}; // { YYYY-MM-DD: total_minutes }
+            weeklySessions.forEach(s => {
+                weeklyData[s.date] = (weeklyData[s.date] || 0) + s.minutes;
+            });
+
+            const labels = [];
+            const data = [];
+            let currentDate = new Date();
+            for (let i = 6; i >= 0; i--) {
+                const day = new Date(currentDate.getTime() - i * 24 * 60 * 60 * 1000);
+                const dayYMD = dateToYMD(day);
+                labels.push(day.toLocaleDateString('en-US', { weekday: 'short' }));
+                data.push(weeklyData[dayYMD] || 0);
+            }
+
+            if (lineChart) lineChart.destroy();
+            lineChart = new Chart(document.getElementById('weekly-line-chart'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Minutes Worked',
+                        data: data,
+                        borderColor: var('--primary-color'),
+                        backgroundColor: 'rgba(0, 122, 255, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Minutes' } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (context) => `Total: ${formatMinutes(context.parsed.y)}` } }
+                    }
+                }
+            });
+        }
+
+
+        // --- TIMERS PAGE (Rendering & Logic) ---
+
+        function renderTimers() {
+            const timersListEl = document.getElementById('timers-list');
+            timersListEl.innerHTML = ''; // Clear existing list
+
+            categories.forEach(cat => {
+                const isActive = activeTimer && activeTimer.category_id === cat.id;
+                const timerMinutes = isActive ? Math.floor((Date.now() - activeTimer.start_time) / 60000) : 0;
+                const displayTime = isActive ? `(${formatMinutes(timerMinutes)})` : '';
+                
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.id = cat.id;
+
+                card.innerHTML = `
+                    <div class="timer-category-name" style="color: ${cat.color};">${cat.name} ${displayTime}</div>
+                    <div class="timer-controls">
+                        <button class="timer-btn ${isActive ? 'btn-stop' : 'btn-start'}" data-action="${isActive ? 'stop' : 'start'}">${isActive ? 'Stop' : 'Start'}</button>
+                        <button class="timer-btn btn-log" data-action="log">Log</button>
+                        <button class="timer-btn btn-delete" data-action="delete">X</button>
+                    </div>
+                `;
+                timersListEl.appendChild(card);
+            });
+
+            updateProgress();
+            updateActiveTimerDisplay();
+        }
+
+        function updateProgress() {
+            const todayTotalMinutes = calculateDailyTotalMinutes();
+            const doneTimeEl = document.getElementById('progress-done-time');
+            const progressBarEl = document.getElementById('progress-bar');
+            
+            doneTimeEl.textContent = formatMinutes(todayTotalMinutes);
+
+            let progressPercentage = (todayTotalMinutes / DAILY_GOAL_MINUTES) * 100;
+            if (progressPercentage > 100) progressPercentage = 100;
+
+            progressBarEl.style.width = `${progressPercentage}%`;
+        }
+
+        function updateActiveTimerDisplay() {
+            const activeDisplayEl = document.getElementById('active-timer-display');
+            if (activeTimer) {
+                const cat = categories.find(c => c.id === activeTimer.category_id);
+                const elapsedMinutes = Math.floor((Date.now() - activeTimer.start_time) / 60000);
+                activeDisplayEl.textContent = `${cat.name} (${formatMinutes(elapsedMinutes)})`;
+            } else {
+                activeDisplayEl.textContent = 'None';
+            }
+        }
+
+        function startTimer(categoryId) {
+            if (activeTimer) {
+                stopTimer(activeTimer.category_id, true); // Stop any existing timer first
+            }
+
+            activeTimer = {
+                category_id: categoryId,
+                start_time: Date.now()
+            };
+
+            timerInterval = setInterval(() => {
+                updateActiveTimerDisplay();
+                if (document.getElementById('timers-page').classList.contains('active')) {
+                     renderTimers(); // Force refresh to show current timer minutes
+                }
+            }, 5000); // Update every 5 seconds for live display
+
+            renderTimers();
+        }
+
+        function stopTimer(categoryId, isSwitch = false) {
+            if (!activeTimer || activeTimer.category_id !== categoryId) return;
+
+            clearInterval(timerInterval);
+            timerInterval = null;
+
+            const elapsedMinutes = Math.floor((Date.now() - activeTimer.start_time) / 60000);
+            activeTimer = null;
+
+            if (elapsedMinutes > 0) {
+                addSession(categoryId, elapsedMinutes);
+                if (!isSwitch) {
+                    alert(`Logged ${formatMinutes(elapsedMinutes)} for ${categories.find(c => c.id === categoryId).name}.`);
+                }
+            } else if (!isSwitch) {
+                alert("Less than a minute recorded. Session cancelled.");
+            }
+
+            renderTimers();
+            renderHome();
+        }
+
+        function addSession(categoryId, minutes) {
+            sessions.push({
+                date: dateToYMD(new Date()),
+                category_id: categoryId,
+                minutes: minutes,
+                timestamp: Date.now()
+            });
+            saveData();
+            updateProgress();
+        }
+
+        document.getElementById('timers-list').addEventListener('click', (e) => {
+            const btn = e.target.closest('.timer-btn');
+            if (!btn) return;
+            
+            const action = btn.dataset.action;
+            const categoryId = btn.closest('.card').dataset.id;
+            const categoryName = categories.find(c => c.id === categoryId).name;
+
+            if (action === 'start') {
+                startTimer(categoryId);
+            } else if (action === 'stop') {
+                stopTimer(categoryId);
+            } else if (action === 'log') {
+                const minutesStr = prompt(`Enter minutes to log for ${categoryName}:`);
+                const minutes = parseInt(minutesStr);
+                if (minutes > 0) {
+                    addSession(categoryId, minutes);
+                    alert(`Logged ${minutes} minutes for ${categoryName}.`);
+                    renderTimers();
+                    renderHome();
+                } else if (minutesStr !== null) {
+                    alert("Invalid minutes entered.");
+                }
+            } else if (action === 'delete') {
+                if (confirm(`Are you sure you want to delete the category "${categoryName}" and all associated sessions?`)) {
+                    categories = categories.filter(c => c.id !== categoryId);
+                    sessions = sessions.filter(s => s.category_id !== categoryId);
+                    if (activeTimer && activeTimer.category_id === categoryId) {
+                        stopTimer(categoryId);
+                    }
+                    saveData();
+                    renderTimers();
+                    renderHome();
+                }
+            }
+        });
+
+        document.getElementById('add-category-btn').addEventListener('click', () => {
+            const newName = prompt("Enter new category name:");
+            if (newName) {
+                const newId = newName.toLowerCase().replace(/\s/g, '_');
+                if (categories.some(c => c.id === newId)) {
+                    alert("A category with this name already exists (or its slug does).");
+                    return;
+                }
+                const newColor = `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
+                categories.push({ id: newId, name: newName, color: newColor });
+                saveData();
+                renderTimers();
+            }
+        });
+
+        // --- NOTES PAGE (Rendering & Logic) ---
+
+        function renderNotes() {
+            const today = dateToYMD(new Date());
+            const previousNotesListEl = document.getElementById('previous-notes-list');
+            previousNotesListEl.innerHTML = '';
+            
+            document.getElementById('note-textarea').value = notes[today] || '';
+
+            const sortedDates = Object.keys(notes)
+                .filter(d => d !== today)
+                .sort((a, b) => new Date(b) - new Date(a));
+
+            if (sortedDates.length === 0) {
+                 previousNotesListEl.innerHTML = '<p style="text-align: center; color: var(--secondary-text-color);">No previous notes.</p>';
+                 return;
+            }
+
+            sortedDates.forEach(dateStr => {
+                const noteCard = document.createElement('div');
+                noteCard.classList.add('card', 'note-card');
+                noteCard.innerHTML = `
+                    <div class="note-card-date">${new Date(dateStr).toLocaleDateString()}</div>
+                    <div class="note-card-content">${notes[dateStr]}</div>
+                `;
+                previousNotesListEl.appendChild(noteCard);
+            });
+        }
+
+        document.getElementById('save-note-btn').addEventListener('click', () => {
+            const today = dateToYMD(new Date());
+            const noteText = document.getElementById('note-textarea').value.trim();
+            
+            if (noteText) {
+                notes[today] = noteText;
+                alert("Note saved!");
+            } else {
+                delete notes[today];
+                alert("Note cleared.");
+            }
+            saveData();
+            renderNotes();
+        });
+
+
+        // --- Data Import/Export ---
+
+        document.getElementById('export-data-btn').addEventListener('click', () => {
+            const data = {
+                categories: categories,
+                sessions: sessions,
+                notes: notes,
+                export_date: new Date().toISOString()
+            };
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `momentum_data_${dateToYMD(new Date())}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('import-file-input').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (importedData.categories && importedData.sessions && importedData.notes) {
+                        if (confirm("Importing data will overwrite your current categories, sessions, and notes. Continue?")) {
+                            categories = importedData.categories;
+                            sessions = importedData.sessions;
+                            notes = importedData.notes;
+                            saveData();
+                            alert("Data imported successfully! The app will now reload.");
+                            window.location.reload();
+                        }
+                    } else {
+                        alert("Invalid file format. Missing categories, sessions, or notes.");
+                    }
+                } catch (error) {
+                    alert("Failed to parse JSON file.");
+                    console.error("Import error:", error);
+                }
+            };
+            reader.readAsText(file);
+            document.getElementById('import-file-input').value = null; // Reset input
+        });
+
+        // --- Initialization ---
+        loadData();
+        renderHome(); // Start on the Home page
+        
+    </script>
+</body>
+</html>
       <section class="card hero">
         <div class="hero-top">
           <div>
