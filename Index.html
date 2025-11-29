@@ -3,110 +3,582 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Momentum — Reports • Timers • Notes</title>
+<title>Momentum — Mobile (Charts Upgraded)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <style>
   :root{
-    --bg:#F6F8FA;
-    --card:#FFFFFFCC;
-    --muted:#6B7280;
-    --glass-border: rgba(0,0,0,0.06);
-    --radius:20px;
-    --accent-blue:#0B69FF;
-    --accent-green:#13A45A;
-    --accent-teal:#06B6D4;
-    --accent-orange:#FF8A3D;
-    --shadow: 0 12px 30px rgba(8,12,20,0.08);
+    --bg: #f3f6fb;
+    --card: #ffffff;
+    --muted: #6b7280;
+    --accent-blue: #0b69ff;
+    --accent-green: #13a45a;
+    --accent-teal: #06b6d4;
+    --accent-orange: #ff8a3d;
+    --radius: 18px;
+    --shadow: 0 12px 30px rgba(8,12,20,0.06);
     font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     -webkit-font-smoothing:antialiased;
   }
 
-  html,body{height:100%;margin:0;background:linear-gradient(180deg,#eef4fb 0%, #f6f8fa 100%);color:#071022}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#eef5fb 0%, #f6f8fc 100%);color:#071022}
   *{box-sizing:border-box}
-  a{color:inherit;text-decoration:none}
+  a{color:inherit}
 
   /* App shell */
-  .app{min-height:100vh;padding:18px;display:flex;align-items:flex-start;justify-content:center}
-  .wrap{width:100%;max-width:980px;display:flex;flex-direction:column;gap:14px;padding-bottom:120px}
+  .app{min-height:100vh;padding:16px;display:flex;align-items:flex-start;justify-content:center}
+  .wrap{width:100%;max-width:720px;display:flex;flex-direction:column;gap:12px;padding-bottom:110px}
 
   /* Header */
   header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .brand{display:flex;align-items:center;gap:12px}
-  .logo{
-    width:48px;height:48px;border-radius:12px;background:linear-gradient(180deg,#ffffff,#f0f6ff);display:flex;align-items:center;justify-content:center;font-weight:900;color:#071022;box-shadow:0 8px 20px rgba(8,12,20,0.06);border:1px solid var(--glass-border)
-  }
+  .brand{display:flex;gap:12px;align-items:center}
+  .logo{width:46px;height:46px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;box-shadow:0 6px 18px rgba(8,12,20,0.06);border:1px solid rgba(8,12,20,0.03)}
   .title h1{margin:0;font-size:18px}
   .title p{margin:0;font-size:12px;color:var(--muted)}
 
-  /* header buttons */
-  .hdr-actions{display:flex;gap:8px;align-items:center}
-  .btn{
-    padding:8px 12px;border-radius:999px;border:1px solid rgba(7,16,34,0.06);background:linear-gradient(180deg, #fff, #fbfdff);font-weight:700;color:#071022;font-size:13px;box-shadow:0 6px 18px rgba(8,12,20,0.04)
-  }
+  .hdr-actions{display:flex;gap:8px}
+  .btn{background:#fff;border:1px solid rgba(8,12,20,0.04);padding:8px 12px;border-radius:999px;font-weight:700;box-shadow:0 6px 16px rgba(8,12,20,0.04)}
 
   /* Card */
-  .card{
-    border-radius:var(--radius);
-    background:var(--card);
-    border:1px solid rgba(7,16,34,0.04);
-    padding:14px;
-    box-shadow:var(--shadow);
-  }
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid rgba(8,12,20,0.03);padding:12px}
 
-  /* HERO */
+  /* Hero */
   .hero{display:flex;flex-direction:column;gap:12px}
   .hero-top{display:flex;justify-content:space-between;align-items:center}
   .today-total{font-size:26px;font-weight:800}
   .muted{color:var(--muted);font-size:13px}
   .chip-row{display:flex;gap:10px;flex-wrap:wrap}
-  .chip{
-    background:linear-gradient(180deg,#fff,#fbfdff);
-    border-radius:999px;padding:8px 12px;border:1px solid rgba(7,16,34,0.04);font-weight:700;
-    display:flex;flex-direction:column;align-items:center;min-width:86px;text-align:center;
-  }
-  .chip small{color:var(--muted);font-weight:600;font-size:12px;margin-top:6px}
+  .chip{background:#fff;border-radius:999px;padding:10px 14px;border:1px solid rgba(8,12,20,0.03);min-width:92px;text-align:center;font-weight:800}
+  .chip small{display:block;color:var(--muted);font-weight:600;margin-top:6px}
 
-  /* Charts row */
+  /* charts layout - ensure parent not flex-determined width problems */
   .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
-  .chart-card{padding:10px;border-radius:14px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid rgba(7,16,34,0.03);}
+  .chart-card{background:#fff;border-radius:14px;padding:10px;border:1px solid rgba(8,12,20,0.03);box-shadow:0 6px 18px rgba(8,12,20,0.04)}
+  .chart-wrap{width:100%;height:190px} /* fixed height container - mobile friendly */
 
-  /* Recent sessions */
-  .sessions{margin-top:12px}
-  .session{padding:10px;border-radius:12px;border:1px solid rgba(7,16,34,0.03);margin-bottom:10px;background:linear-gradient(180deg,#fff,#fbfdff);display:flex;justify-content:space-between;align-items:center}
+  /* sessions */
+  .sessions{margin-top:8px}
+  .session{padding:10px;border-radius:12px;border:1px solid rgba(8,12,20,0.03);margin-bottom:10px;background:#fff;display:flex;justify-content:space-between;align-items:center}
   .session small{color:var(--muted)}
 
-  /* Timers page */
-  .timers-list{display:flex;flex-direction:column;gap:12px;margin-top:12px}
-  .tile{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid rgba(7,16,34,0.03)}
-  .tile-left{display:flex;align-items:center;gap:12px;flex:1}
-  .avatar{width:56px;height:56px;border-radius:12px;background:linear-gradient(180deg,#f3f7ff,#ffffff);display:flex;align-items:center;justify-content:center;font-weight:800;color:#071022;border:1px solid rgba(7,16,34,0.04)}
+  /* timers page */
+  .timers-list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+  .tile{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:#fff;border:1px solid rgba(8,12,20,0.03)}
+  .avatar{width:56px;height:56px;border-radius:12px;background:linear-gradient(180deg,#f8fafc,#ffffff);display:flex;align-items:center;justify-content:center;font-weight:800;color:#071022;border:1px solid rgba(8,12,20,0.03)}
   .tile-meta .title{font-weight:800}
   .tile-meta .sub{font-size:13px;color:var(--muted);margin-top:6px}
   .tile-actions{display:flex;gap:8px;align-items:center}
-  .pill{
-    border-radius:999px;padding:10px 14px;border:1px solid rgba(7,16,34,0.06);background:linear-gradient(180deg,#fff,#f6f9ff);font-weight:800;color:#071022
-  }
-  .pill.ghost{background:transparent;border:1px solid rgba(7,16,34,0.06)}
+  .pill{border-radius:999px;padding:8px 12px;border:1px solid rgba(8,12,20,0.04);background:#fff;font-weight:800}
 
-  /* progress */
   .progress{height:8px;border-radius:999px;background:#f1f5f9;overflow:hidden;margin-top:8px}
-  .progress > b{display:block;height:100%;background:linear-gradient(90deg,var(--accent-green),var(--accent-teal));width:0%}
+  .progress b{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent-green),var(--accent-teal))}
 
-  /* Notes page */
+  /* notes */
+  textarea{width:100%;min-height:120px;border-radius:12px;padding:12px;border:1px solid rgba(8,12,20,0.04);background:#fff;resize:vertical}
   .notes-list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
-  .note-card{padding:12px;border-radius:12px;border:1px solid rgba(7,16,34,0.03);background:linear-gradient(180deg,#fff,#fbfdff)}
+  .note-card{padding:12px;border-radius:12px;background:#fff;border:1px solid rgba(8,12,20,0.03)}
 
-  /* floating bottom nav (iOS style) */
+  /* bottom nav iOS style */
   .bottom-nav{position:fixed;left:0;right:0;bottom:12px;display:flex;justify-content:center;pointer-events:auto}
-  .nav-wrap{width:100%;max-width:980px;padding:0 18px;display:flex;justify-content:space-between;align-items:center}
-  .nav-item{flex:1;text-align:center;padding:8px 6px;border-radius:14px}
+  .nav-wrap{width:100%;max-width:720px;padding:0 16px;display:flex;justify-content:space-between;align-items:center}
+  .nav-item{flex:1;text-align:center;padding:6px}
   .nav-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:12px}
-  .nav-icon{width:22px;height:22px;display:block}
+  .nav-icon{width:22px;height:22px}
   .nav-label{font-size:12px;color:var(--muted)}
   .nav-active .nav-label{color:var(--accent-blue);font-weight:800}
-  .nav-active .nav-icon{filter: drop-shadow(0 4px 10px rgba(11,105,255,0.15))}
+  .nav-active svg *{stroke:var(--accent-blue); fill:var(--accent-blue)}
+
+  /* responsive tweaks */
+  @media(min-width:860px){
+    .charts-grid{grid-template-columns: 2fr 1fr}
+    .chart-wrap{height:220px}
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <div class="wrap" id="appRoot">
+      <header>
+        <div class="brand">
+          <div class="logo">M</div>
+          <div class="title">
+            <h1>Momentum</h1>
+            <p>Reports • Timers • Notes</p>
+          </div>
+        </div>
+        <div class="hdr-actions">
+          <button class="btn" id="btnExport">Export</button>
+          <button class="btn" id="btnImport">Import</button>
+        </div>
+      </header>
+
+      <!-- HOME -->
+      <main id="page-home" class="page">
+        <section class="card hero">
+          <div class="hero-top">
+            <div>
+              <div class="muted">Today's total</div>
+              <div class="today-total" id="todayTotal">0m</div>
+            </div>
+            <div style="text-align:right">
+              <div class="muted">Streak</div>
+              <div style="font-weight:800" id="streak">0d</div>
+            </div>
+          </div>
+
+          <div class="chip-row" id="chipRow"></div>
+
+          <div class="charts-grid">
+            <div class="chart-card">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <strong>Weekly Hours</strong>
+                <div class="muted" id="weekRange">—</div>
+              </div>
+              <div class="chart-wrap">
+                <canvas id="barWeekly"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <strong>Distribution</strong>
+                <div class="muted">Today</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:center;margin-top:8px">
+                <div style="width:170px;height:170px;position:relative">
+                  <canvas id="donut"></canvas>
+                  <div id="donutCenter" style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-weight:800;font-size:18px;color:#071022">0m</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sessions">
+            <div style="margin-top:10px" class="muted">Recent sessions</div>
+            <div id="sessionsList" style="margin-top:8px"></div>
+          </div>
+        </section>
+      </main>
+
+      <!-- TIMERS -->
+      <main id="page-timers" class="page" style="display:none">
+        <section class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <strong>Timers</strong>
+              <div class="muted">Start sessions and hit your daily targets</div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn" id="btnAdd">+ Add</button>
+              <button class="btn" id="btnDefaults">Defaults</button>
+            </div>
+          </div>
+
+          <div class="timers-list" id="timersList"></div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+            <div class="muted">Clear today's sessions if needed</div>
+            <button class="btn" id="btnClearToday">Clear Today</button>
+          </div>
+        </section>
+      </main>
+
+      <!-- NOTES -->
+      <main id="page-notes" class="page" style="display:none">
+        <section class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <strong id="notesTitle">Notes</strong>
+              <div class="muted">Write what you achieved today</div>
+            </div>
+            <div class="muted" id="notesDate">—</div>
+          </div>
+
+          <div style="margin-top:12px">
+            <textarea id="noteText" placeholder="What you achieve today..."></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px">
+              <button class="btn" id="saveNote">Save</button>
+            </div>
+          </div>
+
+          <div style="margin-top:14px">
+            <div class="muted">Previous notes</div>
+            <div class="notes-list" id="notesList"></div>
+          </div>
+        </section>
+      </main>
+
+      <footer style="text-align:center;color:var(--muted);font-size:12px;margin-top:6px">Offline • Single file • LocalStorage</footer>
+    </div>
+  </div>
+
+  <!-- bottom nav -->
+  <div class="bottom-nav">
+    <div class="nav-wrap">
+      <div class="nav-item" data-page="home">
+        <button class="nav-btn nav-active" id="navHome">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8" stroke="#0B69FF" stroke-width="1.6"/><circle cx="12" cy="12" r="4" fill="#0B69FF"/></svg>
+          <div class="nav-label">Home</div>
+        </button>
+      </div>
+
+      <div class="nav-item" data-page="timers">
+        <button class="nav-btn" id="navTimers">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 7v6l4 2" stroke="#9CA3AF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="8" stroke="#9CA3AF" stroke-width="1.6"/></svg>
+          <div class="nav-label">Timers</div>
+        </button>
+      </div>
+
+      <div class="nav-item" data-page="notes">
+        <button class="nav-btn" id="navNotes">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="16" height="16" rx="2" stroke="#9CA3AF" stroke-width="1.6"/><path d="M8 8h8M8 12h8M8 16h5" stroke="#9CA3AF" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <div class="nav-label">Notes</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* Momentum mobile — rewritten charts + pages
+   Chart techniques:
+   - use responsive:true and maintainAspectRatio:false for mobile responsiveness (Chart.js docs). 2
+   - rounded bars via borderRadius / borderSkipped (Chart.js samples). 3
+   - doughnut + center text via small plugin drawing on canvas. 4
+*/
+
+/* ---------- utils ---------- */
+const uid = (n=8)=>Math.random().toString(36).slice(2,2+n);
+const fmt = s=>{
+  if(!s) return '0m';
+  if(s<60) return Math.round(s)+'s';
+  const h=Math.floor(s/3600), m=Math.floor((s%3600)/60);
+  if(h) return `${h}h ${m}m`;
+  return `${m}m`;
+};
+const dayKey = d=>d.toISOString().slice(0,10);
+
+/* ---------- state ---------- */
+const KEY='momentum.mobile_v2';
+let state = { categories:{}, sessions:[], notes:{}, createdAt: Date.now() };
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+function load(){ try{ const raw=localStorage.getItem(KEY); if(raw) state=JSON.parse(raw); }catch(e){console.warn('load',e);} }
+load();
+
+/* ---------- defaults ---------- */
+function ensureDefaults(){
+  if(Object.keys(state.categories).length) return;
+  addCategory('Study',6);
+  addCategory('Project',4);
+  addCategory('Workout',1);
+  addCategory('Social',0.5);
+  save();
+}
+
+/* ---------- categories ---------- */
+function addCategory(name,hours=1){
+  const id=uid(6);
+  state.categories[id]={id,name,goalSeconds:Math.round(hours*3600),running:false,currentStart:null};
+  save(); renderAll(); return id;
+}
+function removeCategory(id){
+  delete state.categories[id];
+  state.sessions = state.sessions.filter(s=>s.catId!==id);
+  save(); renderAll();
+}
+
+/* ---------- timers ---------- */
+function startTimer(id){
+  // exclusive: stop others
+  Object.values(state.categories).forEach(c=>{ if(c.running) stopTimer(c.id); });
+  const c=state.categories[id]; if(!c) return;
+  c.running=true; c.currentStart=Date.now(); save(); renderAll(); startTicker();
+}
+function stopTimer(id,note=''){
+  const c=state.categories[id]; if(!c || !c.running) return;
+  const start=c.currentStart||Date.now(), stop=Date.now(), dur=Math.round((stop-start)/1000);
+  c.running=false; c.currentStart=null;
+  state.sessions.push({id:uid(8),catId:id,start,stop,duration:dur,date:dayKey(new Date(start)),notes:note||''});
+  save(); renderAll();
+}
+function addManual(id,minutes){
+  const dur=Math.round(minutes*60); const start=Date.now()-dur*1000;
+  state.sessions.push({id:uid(8),catId:id,start,stop:Date.now(),duration:dur,date:dayKey(new Date(start)),notes:'manual'});
+  save(); renderAll();
+}
+function clearToday(){
+  const t=dayKey(new Date());
+  state.sessions=state.sessions.filter(s=>s.date!==t);
+  if(state.notes) delete state.notes[t];
+  save(); renderAll();
+}
+
+/* ---------- stats helpers ---------- */
+function totalForDate(d){ return state.sessions.filter(s=>s.date===d).reduce((a,b)=>a+b.duration,0); }
+function totalForCatDate(catId,d){ return state.sessions.filter(s=>s.catId===catId && s.date===d).reduce((a,b)=>a+b.duration,0); }
+function lastNDays(n=7,end=new Date()){ const out=[]; for(let i=n-1;i>=0;i--){ const dt=new Date(end); dt.setDate(dt.getDate()-i); out.push(dayKey(dt)); } return out; }
+
+/* ---------- DOM refs ---------- */
+const pageHome=document.getElementById('page-home');
+const pageTimers=document.getElementById('page-timers');
+const pageNotes=document.getElementById('page-notes');
+
+const todayTotalEl=document.getElementById('todayTotal');
+const streakEl=document.getElementById('streak');
+const chipRow=document.getElementById('chipRow');
+const sessionsList=document.getElementById('sessionsList');
+const barCtx=document.getElementById('barWeekly');
+const donutCtx=document.getElementById('donut');
+const donutCenter=document.getElementById('donutCenter');
+const timersList=document.getElementById('timersList');
+const notesList=document.getElementById('notesList');
+const noteText=document.getElementById('noteText');
+const notesDate=document.getElementById('notesDate');
+const weekRangeEl=document.getElementById('weekRange');
+
+let barChart=null, donutChart=null;
+
+/* ---------- charts plugin: donut center text ---------- */
+const DonutCenterPlugin = {
+  id: 'donutCenter',
+  afterDraw(chart){
+    if(chart.config.type !== 'doughnut') return;
+    const centerText = chart.config.options.plugins?.donutCenter?.text || '';
+    const {ctx, chartArea:{top, bottom, left, right, width, height}} = chart;
+    ctx.save();
+    ctx.fillStyle = '#071022';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const x = left + width/2;
+    const y = top + height/2;
+    ctx.font = '700 16px Inter, system-ui';
+    ctx.fillText(centerText, x, y);
+    ctx.restore();
+  }
+};
+Chart.register(DonutCenterPlugin);
+
+/* ---------- render: home ---------- */
+function renderHome(){
+  const today=dayKey(new Date());
+  const total = totalForDate(today);
+  todayTotalEl.innerText = fmt(total);
+  // streak (consecutive days >10min)
+  const days = lastNDays(30);
+  let streak=0;
+  for(let i=days.length-1;i>=0;i--){
+    if(totalForDate(days[i]) > 10*60) streak++; else break;
+  }
+  streakEl.innerText = streak + 'd';
+
+  // chips
+  chipRow.innerHTML='';
+  Object.values(state.categories).forEach(c=>{
+    const sec = totalForCatDate(c.id,today);
+    const el = document.createElement('div'); el.className='chip';
+    el.innerHTML = `<div style="font-weight:800">${c.name}</div><small>${fmt(sec)}</small>`;
+    chipRow.appendChild(el);
+  });
+
+  // recent sessions
+  sessionsList.innerHTML='';
+  const recent = state.sessions.slice().reverse().slice(0,8);
+  recent.forEach(s=>{
+    const name = state.categories[s.catId] ? state.categories[s.catId].name : 'Unknown';
+    const when = new Date(s.start).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    const el = document.createElement('div'); el.className='session';
+    el.innerHTML = `<div><strong>${name}</strong> <small>• ${fmt(s.duration)}</small></div><div style="text-align:right"><small>${when}</small></div>`;
+    sessionsList.appendChild(el);
+  });
+
+  // charts
+  renderBarChart();
+  renderDonut();
+}
+
+/* ---------- bar chart: weekly hours (minutes -> label as hours) ---------- */
+function renderBarChart(){
+  const days = lastNDays(7);
+  weekRangeEl.innerText = `${days[0]} → ${days[days.length-1]}`;
+  const labels = days.map(d=>d.slice(5));
+  const data = days.map(d=>Math.round(totalForDate(d)/60)); // minutes
+  if(barChart) barChart.destroy();
+
+  // Chart.js options: responsive & maintainAspectRatio false to behave on mobile container. 5
+  barChart = new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Minutes',
+        data,
+        backgroundColor: '#13A45A',
+        borderRadius: 8,          // rounded bars (docs sample). 6
+        borderSkipped: false,
+        maxBarThickness: 26
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display:false } },
+      scales: {
+        x: { grid:{ display:false }, ticks:{ color:'#6b7280' } },
+        y: { grid:{ color:'rgba(7,16,34,0.04)' }, ticks:{ callback: v => (v/60).toFixed(0) + 'h', color:'#6b7280' } }
+      },
+      layout: { padding: { top:6, bottom:4 } }
+    }
+  });
+}
+
+/* ---------- donut chart: distribution today (center text) ---------- */
+function renderDonut(){
+  const today = dayKey(new Date());
+  const catIds = Object.keys(state.categories);
+  const labels = catIds.map(id=>state.categories[id].name);
+  const data = catIds.map(id => Math.round(totalForCatDate(id,today)/60)); // minutes
+  const totalMin = data.reduce((a,b)=>a+b,0);
+  donutCenter.innerText = totalMin ? fmt(totalMin*60) : '0m';
+
+  if(donutChart) donutChart.destroy();
+  donutChart = new Chart(donutCtx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: labels.map((_,i)=> i%2? '#06B6D4' : '#FF8A3D' ) }] },
+    options: {
+      responsive:true,
+      maintainAspectRatio:false,
+      cutout: '66%',
+      plugins: {
+        legend: { position:'right', labels:{boxWidth:12,font:{size:12}} },
+        donutCenter: { text: totalMin ? fmt(totalMin*60) : '0m' } // plugin used to draw center text
+      }
+    }
+  });
+}
+
+/* ---------- timers page rendering ---------- */
+function renderTimers(){
+  timersList.innerHTML='';
+  Object.values(state.categories).forEach(c=>{
+    const tile = document.createElement('div'); tile.className='tile';
+    tile.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;flex:1">
+        <div class="avatar">${c.name[0]||'•'}</div>
+        <div class="tile-meta">
+          <div class="title">${c.name}</div>
+          <div class="sub">Goal: ${fmt(c.goalSeconds)}</div>
+          <div class="progress"><b id="fill_${c.id}" style="width:0%"></b></div>
+        </div>
+      </div>
+      <div class="tile-actions" id="acts_${c.id}"></div>
+    `;
+    timersList.appendChild(tile);
+
+    // progress
+    const sec = totalForCatDate(c.id, dayKey(new Date())) + (c.running && c.currentStart ? Math.round((Date.now()-c.currentStart)/1000) : 0);
+    const pct = Math.min(100, Math.round((sec/(c.goalSeconds||1))*100));
+    const fill = document.getElementById(`fill_${c.id}`); if(fill) fill.style.width = pct + '%';
+
+    // actions
+    const acts = document.getElementById(`acts_${c.id}`);
+    acts.innerHTML = '';
+    const startBtn = document.createElement('button'); startBtn.className='pill'; startBtn.textContent='Start';
+    const stopBtn = document.createElement('button'); stopBtn.className='pill'; stopBtn.textContent='Stop';
+    const logBtn = document.createElement('button'); logBtn.className='pill'; logBtn.textContent='Log';
+    const delBtn = document.createElement('button'); delBtn.className='pill'; delBtn.textContent='Del';
+
+    if(c.running) startBtn.disabled=true; else stopBtn.disabled=true;
+    acts.appendChild(startBtn); acts.appendChild(stopBtn); acts.appendChild(logBtn); acts.appendChild(delBtn);
+
+    startBtn.onclick = ()=>startTimer(c.id);
+    stopBtn.onclick = ()=>{ const note = prompt('Optional note:','')||''; stopTimer(c.id,note); };
+    logBtn.onclick = ()=>{ const m = parseFloat(prompt('Minutes to add','30')); if(!isNaN(m) && m>0) addManual(c.id,m); };
+    delBtn.onclick = ()=>{ if(confirm('Delete category and its sessions?')) removeCategory(c.id); };
+  });
+}
+
+/* ---------- notes page ---------- */
+function renderNotes(){
+  const today = dayKey(new Date());
+  notesDate.innerText = new Date().toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
+  noteText.value = state.notes[today] || '';
+  notesList.innerHTML = '';
+  const keys = Object.keys(state.notes).sort((a,b)=> b.localeCompare(a));
+  keys.forEach(k=>{
+    const el=document.createElement('div'); el.className='note-card';
+    const dd = new Date(k).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+    const preview = state.notes[k].length>140 ? state.notes[k].slice(0,140)+'...' : state.notes[k];
+    el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:800">${dd}</div><div class="muted" style="font-size:13px">${k===today?'Today':''}</div></div><div style="margin-top:8px;color:#071022">${preview}</div>`;
+    el.onclick = ()=>{
+      const full = prompt('Note for ' + dd, state.notes[k]||'');
+      if(full===null) return;
+      if(full.trim()===''){ if(confirm('Delete this note?')){ delete state.notes[k]; save(); renderNotes(); renderAll(); } }
+      else{ state.notes[k]=full; save(); renderNotes(); renderAll(); }
+    };
+    notesList.appendChild(el);
+  });
+}
+
+/* ---------- UI wiring ---------- */
+document.getElementById('btnExport').onclick = ()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='momentum-data.json'; a.click();
+};
+document.getElementById('btnImport').onclick = ()=>{
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='.json,application/json'; inp.onchange=()=>{ const f=inp.files[0]; if(!f) return; const r=new FileReader(); r.onload=e=>{ try{ const d=JSON.parse(e.target.result); if(confirm('Replace local data with imported file?')){ state=d; save(); renderAll(); } }catch(err){ alert('Invalid JSON'); } }; r.readAsText(f); }; inp.click();
+};
+document.getElementById('btnAdd').onclick = ()=>{ const name=prompt('Category name','Reading'); if(!name) return; const hrs=parseFloat(prompt('Daily goal hours','1'))||1; addCategory(name,hrs); };
+document.getElementById('btnDefaults').onclick = ()=>{ ensureDefaults(); save(); renderAll(); };
+document.getElementById('btnClearToday').onclick = ()=>{ if(confirm('Clear today sessions and note?')) clearToday(); };
+document.getElementById('saveNote').onclick = ()=>{ const t=dayKey(new Date()); state.notes = state.notes || {}; state.notes[t] = noteText.value.trim(); save(); renderNotes(); renderAll(); alert('Saved'); };
+
+/* --- nav --- */
+function setActiveTab(name){
+  pageHome.style.display = name==='home' ? '' : 'none';
+  pageTimers.style.display = name==='timers' ? '' : 'none';
+  pageNotes.style.display = name==='notes' ? '' : 'none';
+  document.querySelectorAll('.nav-item').forEach(item=>{
+    const p=item.dataset.page;
+    const active = p===name;
+    const btn = item.querySelector('.nav-btn');
+    if(active) btn.classList.add('nav-active'); else btn.classList.remove('nav-active');
+    // change svg colors
+    const svg = item.querySelector('svg');
+    if(svg){
+      svg.querySelectorAll('path,circle,rect').forEach(el=>{
+        el.setAttribute('stroke', active? '#0B69FF' : '#9CA3AF');
+        if(el.tagName==='circle' && active) el.setAttribute('fill','#0B69FF');
+      });
+    }
+  });
+}
+document.getElementById('navHome').onclick = ()=>setActiveTab('home');
+document.getElementById('navTimers').onclick = ()=>setActiveTab('timers');
+document.getElementById('navNotes').onclick = ()=>setActiveTab('notes');
+
+/* ---------- ticker ---------- */
+let ticker=null;
+function startTicker(){ if(ticker) return; ticker=setInterval(()=>{ renderTimers(); renderHome(); if(Math.random()<0.06) renderBarChart(); }, 900); }
+function stopTicker(){ if(ticker){ clearInterval(ticker); ticker=null; } }
+
+/* ---------- PWA manifest + SW (inline) ---------- */
+(function createManifest(){ const m={name:"Momentum",short_name:"Momentum",start_url:".",display:"standalone",background_color:"#f6f8fc",theme_color:"#f6f8fc"}; const b=new Blob([JSON.stringify(m)],{type:'application/json'}); const u=URL.createObjectURL(b); let l=document.querySelector('link[rel="manifest"]'); if(!l){ l=document.createElement('link'); l.rel='manifest'; document.head.appendChild(l);} l.href=u; })();
+(function registerSW(){ if('serviceWorker' in navigator){ const code=`const CACHE='momentum-mobile-v2'; const urls=['./']; self.addEventListener('install',e=>{ self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c=>c.addAll(urls)).catch(()=>{})); }); self.addEventListener('activate',e=>e.waitUntil(self.clients.claim())); self.addEventListener('fetch',e=>{ if(e.request.method!=='GET') return; e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)).catch(()=>caches.match('./'))); });`; const blob=new Blob([code],{type:'application/javascript'}); const swUrl=URL.createObjectURL(blob); navigator.serviceWorker.register(swUrl).catch(()=>console.warn('sw failed')); } })();
+
+/* ---------- startup ---------- */
+ensureDefaults();
+renderAll();
+startTicker();
+window.addEventListener('visibilitychange', ()=>{ if(document.hidden) save(); });
+window.addEventListener('beforeunload', save);
+
+/* expose debug */
+window._momentum = ()=>state;
+</script>
+</body>
+</html>  .nav-active .nav-icon{filter: drop-shadow(0 4px 10px rgba(11,105,255,0.15))}
 
   /* mobile-friendly */
   @media(min-width:900px){
